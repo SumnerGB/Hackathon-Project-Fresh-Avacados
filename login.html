@@ -1,17 +1,59 @@
-<form action="register" method="post">
-  <div>
-    <label for="username">Username:</label>
-    <input type="text" id="username" name="username" />
-  </div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Marist Login</title>
 
-  <div>
-    <label for="pass">Password (8 characters minimum):</label>
-    <input type="password" id="pass" name="password" minlength="8" required />
-  </div>
+<style>
 
-  <input type="submit" value="Sign up" />
+  body {
+    margin: 0;
+    font-family: Arial, sans-serif;
 
-  <div>
-    <a href="login.html">Already have an account?</a>
-  </div>
-</form>
+    background: 
+      linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)),
+      url("marist_other.jpg");
+
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+
+  .marist-card {
+    background: linear-gradient(135deg, #b30000, #ff1a1a);
+    padding: 30px;
+    border-radius: 20px;
+    box-shadow: 0 12px 30px rgba(179, 0, 0, 0.35);
+    color: white;
+    width: 420px;
+    text-align: center;
+  }
+
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 25px;
+  }
+
+  .header img {
+    height: 90px;
+    width: 90px;
+    background: white;
+    padding: 5px;
+    border-radius: 12px;
+  }
+
+  .header h1 {
+    font-size: 50px;
+    margin: 0;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-shadow: 2px 2px 10px rgba(0,0,0,0)
+  }
