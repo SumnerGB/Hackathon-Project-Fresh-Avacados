@@ -119,13 +119,41 @@
   border-radius: 5px;
   text-align: center;
   display: inline-block;
-  min-width: 100px;
+  min-width: 160px;
+  position: relative;
+}
+
+.trash-can-images {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  margin: 0 auto;
 }
 
 .trash-can img {
-  width: 60px;
-  height: 60px;
+  width: 120px;
+  height: 120px;
   cursor: pointer;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.trash-can img[src*="closed"] {
+  z-index: 2;
+}
+
+.trash-can img[src*="open"] {
+  z-index: 1;
+  opacity: 0;
+}
+
+.trash-can.active img[src*="closed"] {
+  opacity: 0;
+}
+
+.trash-can.active img[src*="open"] {
+  opacity: 1;
 }
 
 .trash-can.active {
@@ -218,7 +246,10 @@
 </div>
 
 <div class="trash-can" id="trashCan">
-  <img src="closed_trash_can.png" alt="Trash Can">
+  <div class="trash-can-images">
+    <img src="closed_trash_can.png" alt="Trash Can Closed">
+    <img src="open_trash_can.png" alt="Trash Can Open">
+  </div>
   <p>Delete</p>
 </div>
 
@@ -234,7 +265,6 @@ const blocks = document.querySelectorAll('.draggable-block');
 const tableCells = document.querySelectorAll('.schedule tbody td:not(:first-child)');
 const scheduleTable = document.querySelector('.schedule');
 const trashCan = document.getElementById('trashCan');
-const trashCanImg = trashCan.querySelector('img');
 
 blocks.forEach(block => {
   block.addEventListener('dragstart', (e) => {
@@ -298,19 +328,16 @@ trashCan.addEventListener('dragover', (e) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
     trashCan.classList.add('active');
-    trashCanImg.src = 'open_trash_can.png';
   }
 });
 
 trashCan.addEventListener('dragleave', (e) => {
   trashCan.classList.remove('active');
-  trashCanImg.src = 'closed_trash_can.png';
 });
 
 trashCan.addEventListener('drop', (e) => {
   e.preventDefault();
   trashCan.classList.remove('active');
-  trashCanImg.src = 'closed_trash_can.png';
   
   if (draggedElement && draggedElement.classList.contains('scheduled-block')) {
     draggedElement._droppedInTrash = true;
@@ -335,7 +362,6 @@ function attachScheduledBlockHandlers(scheduledBlock) {
   scheduledBlock.addEventListener('dragend', (e) => {
     scheduledBlock.style.opacity = '1';
     trashCan.classList.remove('active');
-    trashCanImg.src = 'closed_trash_can.png';
     
     // If drop succeeded (in trash or valid cell), don't restore
     if (draggedElement._droppedInTrash) {
