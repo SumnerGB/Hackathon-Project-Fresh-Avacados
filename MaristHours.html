@@ -12,7 +12,34 @@
 
 </div>
 
+<!-- Teacher Indicator -->
+<div class="teacher-indicator" style="display: none;"></div>
+
+<!-- Student View -->
+<div id="student-view" class="view-container active">
+
 <style>
+/* View management */
+.view-container {
+  display: none;
+}
+
+.view-container.active {
+  display: block;
+}
+
+/* Teacher indicator */
+.teacher-indicator {
+  position: fixed;
+  bottom: 10px;
+  left: 10px;
+  width: 20px;
+  height: 20px;
+  background-color: black;
+  border-radius: 2px;
+  z-index: 9999;
+}
+
 .schedule table {
   width: 100%;
   border-collapse: collapse;
@@ -265,6 +292,108 @@
   <p>This is where we put some words</p>
 </div>
 
+</div>
+
+<!-- Teacher View -->
+<div id="teacher-view" class="view-container">
+
+<div class="schedule">
+<table style="width:100%; border-collapse:collapse; table-layout:fixed;">
+<thead>
+<tr>
+<th style="width:20px; text-align:center;">Time</th>
+<th style="width:13.5%;">Monday</th>
+<th style="width:13.5%;">Tuesday</th>
+<th style="width:13.5%;">Wednesday</th>
+<th style="width:13.5%;">Thursday</th>
+<th style="width:13.5%;">Friday</th>
+<th style="width:13.5%;">Saturday</th>
+<th style="width:13.5%;">Sunday</th>
+</tr>
+</thead>
+<tbody>
+<tr><td style="text-align:center;">8:00 AM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">8:15 AM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">8:30 AM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">8:45 AM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">9:00 AM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">9:15 AM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">9:30 AM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">9:45 AM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">10:00 AM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">10:15 AM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">10:30 AM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">10:45 AM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">11:00 AM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">11:15 AM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">11:30 AM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">11:45 AM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">12:00 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">12:15 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">12:30 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">12:45 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">1:00 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">1:15 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">1:30 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">1:45 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">2:00 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">2:15 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">2:30 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">2:45 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">3:00 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">3:15 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">3:30 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">3:45 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">4:00 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">4:15 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">4:30 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">4:45 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">5:00 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">5:15 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">5:30 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">5:45 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">6:00 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">6:15 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">6:30 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">6:45 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">7:00 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">7:15 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">7:30 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">7:45 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">8:00 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">8:15 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">8:30 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">8:45 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">9:00 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">9:15 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">9:30 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">9:45 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="blocks-container">
+  <h3>Drag blocks to add to your schedule:</h3>
+  <div class="draggable-block" data-duration="15" draggable="true">15 min</div>
+  <div class="draggable-block" data-duration="30" draggable="true">30 min</div>
+  <div class="draggable-block" data-duration="45" draggable="true">45 min</div>
+  <div class="draggable-block" data-duration="60" draggable="true">1 hour</div>
+</div>
+
+<div class="trash-can" id="trashCan">
+  <div class="trash-can-images">
+    <img src="closed_trash_can.png" alt="Trash Can Closed">
+    <img src="open_trash_can.png" alt="Trash Can Open">
+  </div>
+  <p>Delete</p>
+</div>
+
+<div class="w3-container">
+  <p>This is where we put some words</p>
+</div>
+
+</div>
+
 <script>
 let draggedElement = null;
 
@@ -420,7 +549,34 @@ function attachScheduledBlockHandlers(scheduledBlock) {
 document.querySelectorAll('.scheduled-block').forEach(block => {
   attachScheduledBlockHandlers(block);
 });
+
+// View Management
+const teacher = true; // Set to true for teacher view, false for student view
+const studentView = document.getElementById('student-view');
+const teacherView = document.getElementById('teacher-view');
+const teacherIndicator = document.querySelector('.teacher-indicator');
+
+function switchView() {
+  if (teacher) {
+    studentView.classList.remove('active');
+    teacherView.classList.add('active');
+    if (teacherIndicator) {
+      teacherIndicator.style.display = 'block';
+    }
+  } else {
+    studentView.classList.add('active');
+    teacherView.classList.remove('active');
+    if (teacherIndicator) {
+      teacherIndicator.style.display = 'none';
+    }
+  }
+}
+
+// Initialize view on page load
+switchView();
 </script>
+
+</div>
 
 <div class="w3-container w3-teal">
   <p>My Footer</p>
