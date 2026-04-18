@@ -171,45 +171,45 @@
 </div>
 
 <script>
-  async function loadUsers() {
-    const response = await fetch("/api/users");
-    const users = await response.json();
+    async function loadUsers() {
+            const response = await fetch("/api/users");
+            const users = await response.json();
 
-    const body = document.getElementById("userTableBody");
-    body.innerHTML = "";
+            const body = document.getElementById("userTableBody");
+            body.innerHTML = "";
 
-    users.forEach(user => {
-      body.innerHTML += `
-        <tr>
-          <td>${user.username}</td>
-          <td>${user.password}</td>
-          <td>${user.role}</td>
-        </tr>
-      `;
-    });
-  }
+            users.forEach(user => {
+                body.innerHTML += `
+                    <tr>
+                        <td>${user.username}</td>
+                        <td>${user.password}</td>
+                        <td>${user.role}</td>
+                    </tr>
+                `;
+            });
+        }
 
-  async function registerUser() {
-    const username = document.getElementById("username").value;
-    const password = document.getElementById("password").value;
-    const role = document.getElementById("role").value;
+        async function registerUser() {
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
+            const role = document.getElementById("role").value;
 
-    const response = await fetch("/api/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password, role })
-    });
+            const response = await fetch("/api/register", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username, password, role })
+            });
 
-    const text = await response.text();
+            const text = await response.text();
 
-    if (response.ok) {
-      sessionStorage.setItem("registeredMessage", "Registration successful. You can now log in.");
-      window.location.href = "/";
-    } else {
-      document.getElementById("message").textContent = text;
-      loadUsers();
-    }
-  }
+            if (response.ok) {
+                sessionStorage.setItem("registeredMessage", "Registration successful. You can now log in.");
+                window.location.href = "/";
+            } else {
+                document.getElementById("message").textContent = text;
+                loadUsers();
+            }
+        }
 
   loadUsers();
 </script>
