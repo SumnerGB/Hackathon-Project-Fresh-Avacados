@@ -5,3 +5,6 @@
 -So students can see teachers office hours and put a time block in it
 
 WHAT WE DID:
+-So I maked register buitiful but the pictures don't load on the website part
+ but does load on the actual HTML file so let me know if it loads for you on 
+  the actual website. Thanks (register has been made buitiful)
