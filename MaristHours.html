@@ -205,6 +205,7 @@ let draggedElement = null;
 // Get all draggable blocks from the container
 const blocks = document.querySelectorAll('.draggable-block');
 const tableCells = document.querySelectorAll('.schedule tbody td:not(:first-child)');
+const scheduleTable = document.querySelector('.schedule');
 
 blocks.forEach(block => {
   block.addEventListener('dragstart', (e) => {
@@ -221,7 +222,12 @@ blocks.forEach(block => {
 tableCells.forEach(cell => {
   cell.addEventListener('dragover', (e) => {
     e.preventDefault();
-    e.dataTransfer.dropEffect = 'copy';
+    // Set dropEffect based on what's being dragged
+    if (draggedElement && draggedElement.classList.contains('scheduled-block')) {
+      e.dataTransfer.dropEffect = 'move';
+    } else {
+      e.dataTransfer.dropEffect = 'copy';
+    }
     cell.style.backgroundColor = '#e0e0e0';
   });
   
@@ -233,31 +239,59 @@ tableCells.forEach(cell => {
     e.preventDefault();
     cell.style.backgroundColor = '';
     
-    if (draggedElement && draggedElement.classList.contains('draggable-block')) {
-      // Create a scheduled block element
-      const scheduledBlock = document.createElement('div');
-      scheduledBlock.className = 'scheduled-block';
-      scheduledBlock.textContent = draggedElement.textContent;
-      scheduledBlock.draggable = true;
-      
-      // Set the duration attribute from the dragged block
-      const duration = draggedElement.getAttribute('data-duration');
-      scheduledBlock.setAttribute('data-duration', duration);
-      
-      // Add ability to drag this block out
-      scheduledBlock.addEventListener('dragstart', (e) => {
-        e.dataTransfer.effectAllowed = 'move';
-        e.dataTransfer.setData('text/plain', scheduledBlock.textContent);
-        scheduledBlock.style.opacity = '0.5';
-      });
-      
-      scheduledBlock.addEventListener('dragend', (e) => {
-        scheduledBlock.style.opacity = '1';
-      });
-      
-      cell.appendChild(scheduledBlock);
+    if (draggedElement) {
+      if (draggedElement.classList.contains('draggable-block')) {
+        // Create a new scheduled block element
+        const scheduledBlock = document.createElement('div');
+        scheduledBlock.className = 'scheduled-block';
+        scheduledBlock.textContent = draggedElement.textContent;
+        scheduledBlock.draggable = true;
+        
+        // Set the duration attribute from the dragged block
+        const duration = draggedElement.getAttribute('data-duration');
+        scheduledBlock.setAttribute('data-duration', duration);
+        
+        attachScheduledBlockHandlers(scheduledBlock);
+        cell.appendChild(scheduledBlock);
+      } else if (draggedElement.classList.contains('scheduled-block')) {
+        // Move existing scheduled block to this cell
+        cell.appendChild(draggedElement);
+      }
+      // Mark that drop succeeded
+      draggedElement._dropSucceeded = true;
     }
   });
+});
+
+function attachScheduledBlockHandlers(scheduledBlock) {
+  scheduledBlock.addEventListener('dragstart', (e) => {
+    draggedElement = scheduledBlock;
+    draggedElement._dropSucceeded = false;
+    scheduledBlock.style.opacity = '0.5';
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', scheduledBlock.textContent);
+  });
+  
+  scheduledBlock.addEventListener('dragend', (e) => {
+    scheduledBlock.style.opacity = '1';
+    
+    // Only delete if drop didn't succeed and we're outside the schedule bounds
+    if (!draggedElement._dropSucceeded) {
+      const scheduleRect = scheduleTable.getBoundingClientRect();
+      const x = e.clientX;
+      const y = e.clientY;
+      
+      if (x < scheduleRect.left || x > scheduleRect.right || y < scheduleRect.top || y > scheduleRect.bottom) {
+        scheduledBlock.remove();
+      }
+    }
+    draggedElement = null;
+  });
+}
+
+// Attach handlers to existing scheduled blocks
+document.querySelectorAll('.scheduled-block').forEach(block => {
+  attachScheduledBlockHandlers(block);
 });
 </script>
 
