@@ -1,8 +1,12 @@
 public class java {
 
     @RemoteController
-    public void method() {
-        System.out.println("Hello, World!");
-    }
+    public class HelloController {
 
+        @GetMapping("/hello")
+        public String hello() {
+            return "Hello from java!";
+        }
+    }
+       
 }
