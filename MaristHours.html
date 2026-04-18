@@ -1,6 +1,14 @@
 <div class="w3-container w3-teal">
   <h1>Weekly Schedule</h1>
+<div style="display: flex; align-items: center; gap: 20px;">
   <img src="Marist_Shield.jpg" alt="Marist" height="100" width="100">
+  <header>
+    <h1 style="font-size: 60px; font-weight: bold; margin: 0;">
+      Marist
+    </h1>
+  </header>
+
+</div>
 
 </div>
 
@@ -110,6 +118,28 @@
 .scheduled-block[data-duration="60"] {
   height: 76px;
 }
+
+.trash-can {
+  margin-top: 30px;
+  padding: 15px;
+  background-color: #f9f9f9;
+  border: 2px dashed #999;
+  border-radius: 5px;
+  text-align: center;
+  display: inline-block;
+  min-width: 100px;
+}
+
+.trash-can img {
+  width: 60px;
+  height: 60px;
+  cursor: pointer;
+}
+
+.trash-can.active {
+  background-color: #ffe6e6;
+  border-color: #cc0000;
+}
 </style>
 
 <div class="schedule">
@@ -195,6 +225,11 @@
   <div class="draggable-block" data-duration="60" draggable="true">1 hour</div>
 </div>
 
+<div class="trash-can" id="trashCan">
+  <img src="closed_trash_can.png" alt="Trash Can">
+  <p>Delete</p>
+</div>
+
 <div class="w3-container">
   <p>This is where we put some words</p>
 </div>
@@ -206,6 +241,8 @@ let draggedElement = null;
 const blocks = document.querySelectorAll('.draggable-block');
 const tableCells = document.querySelectorAll('.schedule tbody td:not(:first-child)');
 const scheduleTable = document.querySelector('.schedule');
+const trashCan = document.getElementById('trashCan');
+const trashCanImg = trashCan.querySelector('img');
 
 blocks.forEach(block => {
   block.addEventListener('dragstart', (e) => {
@@ -263,10 +300,41 @@ tableCells.forEach(cell => {
   });
 });
 
+// Trash can handlers
+trashCan.addEventListener('dragover', (e) => {
+  if (draggedElement && draggedElement.classList.contains('scheduled-block')) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    trashCan.classList.add('active');
+    trashCanImg.src = 'open_trash_can.png';
+  }
+});
+
+trashCan.addEventListener('dragleave', (e) => {
+  trashCan.classList.remove('active');
+  trashCanImg.src = 'closed_trash_can.png';
+});
+
+trashCan.addEventListener('drop', (e) => {
+  e.preventDefault();
+  trashCan.classList.remove('active');
+  trashCanImg.src = 'closed_trash_can.png';
+  
+  if (draggedElement && draggedElement.classList.contains('scheduled-block')) {
+    draggedElement._droppedInTrash = true;
+    draggedElement.remove();
+    draggedElement = null;
+  }
+});
+
 function attachScheduledBlockHandlers(scheduledBlock) {
   scheduledBlock.addEventListener('dragstart', (e) => {
     draggedElement = scheduledBlock;
     draggedElement._dropSucceeded = false;
+    draggedElement._droppedInTrash = false;
+    // Store the original parent for position restoration
+    draggedElement._originalParent = scheduledBlock.parentNode;
+    draggedElement._originalNextSibling = scheduledBlock.nextSibling;
     scheduledBlock.style.opacity = '0.5';
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/plain', scheduledBlock.textContent);
@@ -274,15 +342,19 @@ function attachScheduledBlockHandlers(scheduledBlock) {
   
   scheduledBlock.addEventListener('dragend', (e) => {
     scheduledBlock.style.opacity = '1';
+    trashCan.classList.remove('active');
+    trashCanImg.src = 'closed_trash_can.png';
     
-    // Only delete if drop didn't succeed and we're outside the schedule bounds
-    if (!draggedElement._dropSucceeded) {
-      const scheduleRect = scheduleTable.getBoundingClientRect();
-      const x = e.clientX;
-      const y = e.clientY;
-      
-      if (x < scheduleRect.left || x > scheduleRect.right || y < scheduleRect.top || y > scheduleRect.bottom) {
-        scheduledBlock.remove();
+    // If drop succeeded (in trash or valid cell), don't restore
+    if (draggedElement._droppedInTrash) {
+      // Already deleted in trash drop handler
+    } else if (!draggedElement._dropSucceeded) {
+      // Restore to original position if drop didn't succeed
+      if (draggedElement._originalParent) {
+        draggedElement._originalParent.insertBefore(
+          scheduledBlock,
+          draggedElement._originalNextSibling
+        );
       }
     }
     draggedElement = null;
