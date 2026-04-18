@@ -51,9 +51,24 @@
   border-radius: 5px;
   border: 2px solid #45a049;
   user-select: none;
-  min-width: 80px;
   text-align: center;
   font-weight: bold;
+}
+
+.draggable-block[data-duration="15"] {
+  width: 60px;
+}
+
+.draggable-block[data-duration="30"] {
+  width: 120px;
+}
+
+.draggable-block[data-duration="45"] {
+  width: 180px;
+}
+
+.draggable-block[data-duration="60"] {
+  width: 240px;
 }
 
 .draggable-block:hover {
@@ -76,9 +91,24 @@
   border-radius: 3px;
   font-size: 12px;
   width: 90%;
-  margin: 2px auto;
   left: 5%;
+  top: 0;
   cursor: move;
+}
+
+.scheduled-block[data-duration="15"] {
+  height: 12px;
+}
+
+.scheduled-block[data-duration="30"] {
+  height: 32px;
+}
+
+.scheduled-block[data-duration="45"] {
+  height: 52px}
+
+.scheduled-block[data-duration="60"] {
+  height: 76px;
 }
 </style>
 
@@ -159,10 +189,10 @@
 
 <div class="blocks-container">
   <h3>Drag blocks to add to your schedule:</h3>
-  <div class="draggable-block" draggable="true">Task 1</div>
-  <div class="draggable-block" draggable="true">Task 2</div>
-  <div class="draggable-block" draggable="true">Task 3</div>
-  <div class="draggable-block" draggable="true">Task 4</div>
+  <div class="draggable-block" data-duration="15" draggable="true">15 min</div>
+  <div class="draggable-block" data-duration="30" draggable="true">30 min</div>
+  <div class="draggable-block" data-duration="45" draggable="true">45 min</div>
+  <div class="draggable-block" data-duration="60" draggable="true">1 hour</div>
 </div>
 
 <div class="w3-container">
@@ -209,6 +239,10 @@ tableCells.forEach(cell => {
       scheduledBlock.className = 'scheduled-block';
       scheduledBlock.textContent = draggedElement.textContent;
       scheduledBlock.draggable = true;
+      
+      // Set the duration attribute from the dragged block
+      const duration = draggedElement.getAttribute('data-duration');
+      scheduledBlock.setAttribute('data-duration', duration);
       
       // Add ability to drag this block out
       scheduledBlock.addEventListener('dragstart', (e) => {
