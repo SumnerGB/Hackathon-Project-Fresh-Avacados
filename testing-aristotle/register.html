@@ -1,80 +1,218 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Register</title>
+<meta charset="UTF-8">
+<title>Marist Page</title>
+
+<style>
+  body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+
+    background:
+      linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)),
+      url("marist_photo.jpg");
+
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+  }
+
+  .marist-card {
+    background: linear-gradient(135deg, #b30000, #ff1a1a);
+    padding: 30px;
+    border-radius: 20px;
+    box-shadow: 0 12px 30px rgba(179, 0, 0, 0.35);
+    color: white;
+    width: 450px;
+    text-align: center;
+  }
+
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 20px;
+  }
+
+  .header img {
+    height: 80px;
+    width: 80px;
+    background: white;
+    padding: 5px;
+    border-radius: 12px;
+  }
+
+  .header h1 {
+    font-size: 48px;
+    margin: 0;
+    font-weight: 800;
+    letter-spacing: 2px;
+  }
+
+  label {
+    display: block;
+    text-align: left;
+    margin-top: 12px;
+    font-weight: bold;
+  }
+
+  input, select {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border-radius: 10px;
+    border: none;
+    outline: none;
+  }
+
+  button {
+    margin-top: 18px;
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    background: white;
+    color: #b30000;
+    transition: 0.2s;
+  }
+
+  button:hover {
+    background: #ffe5e5;
+    transform: scale(1.03);
+  }
+
+  #message {
+    margin-top: 10px;
+    color: yellow;
+    font-weight: bold;
+  }
+
+  table {
+    width: 100%;
+    margin-top: 20px;
+    border-collapse: collapse;
+    background: white;
+    color: black;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  th, td {
+    padding: 8px;
+    border: 1px solid #ddd;
+    font-size: 14px;
+  }
+
+  th {
+    background: #b30000;
+    color: white;
+  }
+
+  a {
+    display: inline-block;
+    margin-top: 15px;
+    color: white;
+    text-decoration: underline;
+  }
+</style>
 </head>
+
 <body>
-    <h2>Register</h2>
 
-    <input id="username" placeholder="Username"><br><br>
-    <input id="password" type="password" placeholder="Password"><br><br>
+<div class="marist-card">
 
-    <select id="role">
-        <option value="student">student</option>
-        <option value="teacher">teacher</option>
-    </select><br><br>
+  <!-- Header -->
+  <div class="header">
+    <img src="Marist_Shield.jpg" alt="Marist">
+    <h1>Marist</h1>
+  </div>
 
-    <button onclick="registerUser()">Register</button>
-    <p id="message" style="color: red;"></p>
+  <!-- Form Inputs -->
+  <label>Username</label>
+  <input id="username" placeholder="Username">
 
-    <h3>Registered Users</h3>
-    <table border="1" cellpadding="8">
-        <thead>
-            <tr>
-                <th>Username</th>
-                <th>Password</th>
-                <th>Role</th>
-            </tr>
-        </thead>
-        <tbody id="userTableBody"></tbody>
-    </table>
+  <label>Password</label>
+  <input id="password" type="password" placeholder="Password">
 
-    <br>
-    <a href="/">Back to Login</a>
+  <label>Role</label>
+  <select id="role">
+    <option value="student">student</option>
+    <option value="teacher">teacher</option>
+  </select>
 
-    <script>
-        async function loadUsers() {
-            const response = await fetch("/api/users");
-            const users = await response.json();
+  <button onclick="registerUser()">Register</button>
 
-            const body = document.getElementById("userTableBody");
-            body.innerHTML = "";
+  <p id="message"></p>
 
-            users.forEach(user => {
-                body.innerHTML += `
-                    <tr>
-                        <td>${user.username}</td>
-                        <td>${user.password}</td>
-                        <td>${user.role}</td>
-                    </tr>
-                `;
-            });
-        }
+  <!-- Users Table -->
+  <h3>Registered Users</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Username</th>
+        <th>Password</th>
+        <th>Role</th>
+      </tr>
+    </thead>
+    <tbody id="userTableBody"></tbody>
+  </table>
 
-        async function registerUser() {
-            const username = document.getElementById("username").value;
-            const password = document.getElementById("password").value;
-            const role = document.getElementById("role").value;
+  <a href="/">Back to Login</a>
+</div>
 
-            const response = await fetch("/api/register", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ username, password, role })
-            });
+<script>
+  async function loadUsers() {
+    const response = await fetch("/api/users");
+    const users = await response.json();
 
-            const text = await response.text();
+    const body = document.getElementById("userTableBody");
+    body.innerHTML = "";
 
-            if (response.ok) {
-                sessionStorage.setItem("registeredMessage", "Registration successful. You can now log in.");
-                window.location.href = "/";
-            } else {
-                document.getElementById("message").textContent = text;
-                loadUsers();
-            }
-        }
+    users.forEach(user => {
+      body.innerHTML += `
+        <tr>
+          <td>${user.username}</td>
+          <td>${user.password}</td>
+          <td>${user.role}</td>
+        </tr>
+      `;
+    });
+  }
 
-        loadUsers();
-    </script>
+  async function registerUser() {
+    const username = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
+    const role = document.getElementById("role").value;
+
+    const response = await fetch("/api/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password, role })
+    });
+
+    const text = await response.text();
+
+    if (response.ok) {
+      sessionStorage.setItem("registeredMessage", "Registration successful. You can now log in.");
+      window.location.href = "/";
+    } else {
+      document.getElementById("message").textContent = text;
+      loadUsers();
+    }
+  }
+
+  loadUsers();
+</script>
+
 </body>
 </html>
