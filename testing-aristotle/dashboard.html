@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+</head>
+<body>
+    <h2>Dashboard</h2>
+    <p id="welcome"></p>
+    <p id="roleMessage"></p>
+
+    <button onclick="logout()">Logout</button>
+
+    <script>
+        const username = localStorage.getItem("username");
+        const role = localStorage.getItem("role");
+
+        if (!username || !role) {
+            window.location.href = "/";
+        }
+
+        document.getElementById("welcome").textContent = "Welcome, " + username + "!";
+
+        if (role === "student") {
+            document.getElementById("roleMessage").textContent =
+                "Student view: You can see your courses and assignments.";
+        } else {
+            document.getElementById("roleMessage").textContent =
+                "Teacher view: You can manage classes and review student work.";
+        }
+
+        function logout() {
+            localStorage.removeItem("username");
+            localStorage.removeItem("role");
+            window.location.href = "/";
+        }
+    </script>
+</body>
+</html>

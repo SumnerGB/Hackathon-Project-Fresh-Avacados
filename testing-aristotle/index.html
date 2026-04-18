@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+</head>
+<body>
+    <h2>Login</h2>
+
+    <input id="username" placeholder="Username"><br><br>
+    <input id="password" type="password" placeholder="Password"><br><br>
+
+    <button onclick="login()">Login</button>
+
+    <p id="successMessage" style="color: green;"></p>
+    <p id="message" style="color: red;"></p>
+
+    <p>Don't have an account?</p>
+    <a href="/register.html">Sign up here</a>
+
+    <script>
+        const msg = sessionStorage.getItem("registeredMessage");
+        if (msg) {
+            document.getElementById("successMessage").textContent = msg;
+            sessionStorage.removeItem("registeredMessage");
+        }
+
+        async function login() {
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
+
+            const response = await fetch("/api/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username, password })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                localStorage.setItem("username", data.username);
+                localStorage.setItem("role", data.role);
+                window.location.href = "/dashboard.html";
+            } else {
+                document.getElementById("message").textContent = await response.text();
+            }
+        }
+    </script>
+</body>
+</html>
