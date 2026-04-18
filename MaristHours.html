@@ -4,8 +4,32 @@
 
 </div>
 
+<style>
+.schedule table {
+  width: 100%;
+  border-collapse: collapse;
+  border-spacing: 0;
+  table-layout: fixed;
+  border: 1px solid black;
+}
+.schedule th,
+.schedule td {
+  border-left: 1px solid black;
+  border-right: 1px solid black;
+  border-bottom: 1px solid black;
+}
+.schedule thead th {
+  border-bottom: 1px solid black;
+}
+.schedule tbody tr:nth-child(4n+2) td,
+.schedule tbody tr:nth-child(4n+3) td,
+.schedule tbody tr:nth-child(4n+4) td {
+  border-bottom: 1px dotted grey;
+}
+</style>
+
 <div class="schedule">
-<table border="1" style="width:100%; border-collapse:collapse; table-layout:fixed;">
+<table style="width:100%; border-collapse:collapse; table-layout:fixed;">
 <thead>
 <tr>
 <th style="width:20px; text-align:center;">Time</th>
@@ -85,5 +109,3 @@
 <div class="w3-container w3-teal">
   <p>My Footer</p>
 </div>
-
-pushspsihsphushou
