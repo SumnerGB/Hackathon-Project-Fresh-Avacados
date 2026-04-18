@@ -1,0 +1,7 @@
+- Add the abiltiy for teachers to save there office hour presets
+-Make alturnite interfaces for teacher and students within the same HTML file
+-Buitify aristotles stuff using my login and signin background
+-Make it so it saves teachers office hours and students select time.
+-So students can see teachers office hours and put a time block in it
+
+WHAT WE DID:
