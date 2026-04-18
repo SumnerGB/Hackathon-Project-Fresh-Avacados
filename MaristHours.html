@@ -298,19 +298,19 @@ trashCan.addEventListener('dragover', (e) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
     trashCan.classList.add('active');
-    trashCanImg.src = 'trash_can_opened.jpg';
+    trashCanImg.src = 'open_trash_can.png';
   }
 });
 
 trashCan.addEventListener('dragleave', (e) => {
   trashCan.classList.remove('active');
-  trashCanImg.src = 'trash_can.jpg';
+  trashCanImg.src = 'closed_trash_can.png';
 });
 
 trashCan.addEventListener('drop', (e) => {
   e.preventDefault();
   trashCan.classList.remove('active');
-  trashCanImg.src = 'trash_can.jpg';
+  trashCanImg.src = 'closed_trash_can.png';
   
   if (draggedElement && draggedElement.classList.contains('scheduled-block')) {
     draggedElement._droppedInTrash = true;
@@ -335,7 +335,7 @@ function attachScheduledBlockHandlers(scheduledBlock) {
   scheduledBlock.addEventListener('dragend', (e) => {
     scheduledBlock.style.opacity = '1';
     trashCan.classList.remove('active');
-    trashCanImg.src = 'trash_can.jpg';
+    trashCanImg.src = 'closed_trash_can.png';
     
     // If drop succeeded (in trash or valid cell), don't restore
     if (draggedElement._droppedInTrash) {
