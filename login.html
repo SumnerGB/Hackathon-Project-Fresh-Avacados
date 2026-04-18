@@ -5,30 +5,38 @@
 <title>Marist Login</title>
 
 <style>
-
   body {
     margin: 0;
     font-family: Arial, sans-serif;
 
-    background: 
-      linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)),
-      url("marist_other.jpeg");
-
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
+    /* background image */
+    background: url("marist_other.jpeg") center/cover no-repeat;
 
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
+
+    position: relative;
+  }
+
+  /* dark overlay on image */
+  body::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    z-index: 0;
   }
 
   .marist-card {
+    position: relative;
+    z-index: 1;
+
     background: linear-gradient(135deg, #b30000, #ff1a1a);
     padding: 30px;
     border-radius: 20px;
-    box-shadow: 0 12px 30px rgba(179, 0, 0, 0.35);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.4);
     color: white;
     width: 420px;
     text-align: center;
@@ -55,5 +63,24 @@
     margin: 0;
     font-weight: 800;
     letter-spacing: 2px;
-    text-shadow: 2px 2px 10px rgba(0,0,0,0)
   }
+</style>
+
+</head>
+
+<body>
+
+  <div class="marist-card">
+    <div class="header">
+      <img src="marist_logo.png" alt="logo">
+      <h1>LOGIN</h1>
+    </div>
+
+    <!-- login form goes here -->
+    <input type="text" placeholder="Username"><br><br>
+    <input type="password" placeholder="Password"><br><br>
+    <button>Sign In</button>
+  </div>
+
+</body>
+</html>
