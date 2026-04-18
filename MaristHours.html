@@ -308,6 +308,22 @@ tableCells.forEach(cell => {
     
     if (draggedElement) {
       if (draggedElement.classList.contains('draggable-block')) {
+        // Check if there's enough space for the block
+        const duration = parseInt(draggedElement.getAttribute('data-duration'));
+        const rowsNeeded = duration / 15; // Each row is 15 minutes
+        
+        // Find the row index of the cell
+        const row = cell.parentNode;
+        const tbody = row.parentNode;
+        const rowIndex = Array.from(tbody.children).indexOf(row);
+        const totalRows = tbody.children.length;
+        
+        // Check if block fits (need rowsNeeded rows starting from rowIndex)
+        if (rowIndex + rowsNeeded > totalRows) {
+          // Block is too long to fit at this position
+          return;
+        }
+        
         // Create a new scheduled block element
         const scheduledBlock = document.createElement('div');
         scheduledBlock.className = 'scheduled-block';
@@ -315,13 +331,26 @@ tableCells.forEach(cell => {
         scheduledBlock.draggable = true;
         
         // Set the duration attribute from the dragged block
-        const duration = draggedElement.getAttribute('data-duration');
         scheduledBlock.setAttribute('data-duration', duration);
         
         attachScheduledBlockHandlers(scheduledBlock);
         cell.appendChild(scheduledBlock);
       } else if (draggedElement.classList.contains('scheduled-block')) {
         // Move existing scheduled block to this cell
+        // Check if there's enough space for the block at new position
+        const duration = parseInt(draggedElement.getAttribute('data-duration'));
+        const rowsNeeded = duration / 15;
+        
+        const row = cell.parentNode;
+        const tbody = row.parentNode;
+        const rowIndex = Array.from(tbody.children).indexOf(row);
+        const totalRows = tbody.children.length;
+        
+        if (rowIndex + rowsNeeded > totalRows) {
+          // Block is too long to fit at this position
+          return;
+        }
+        
         cell.appendChild(draggedElement);
       }
       // Mark that drop succeeded
