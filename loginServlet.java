@@ -4,7 +4,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 
 public @WebServlet("/login")
-public class LoginServlet extends HttpServlet {
+public class loginServlet extends HttpServlet {
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
