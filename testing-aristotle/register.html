@@ -83,18 +83,6 @@
     cursor: pointer;
     background: white;
     color: #b30000;
-    transition: 0.2s;
-  }
-
-  button:hover {
-    background: #ffe5e5;
-    transform: scale(1.03);
-  }
-
-  #message {
-    margin-top: 10px;
-    color: yellow;
-    font-weight: bold;
   }
 
   table {
@@ -103,8 +91,6 @@
     border-collapse: collapse;
     background: white;
     color: black;
-    border-radius: 10px;
-    overflow: hidden;
   }
 
   th, td {
@@ -124,6 +110,11 @@
     color: white;
     text-decoration: underline;
   }
+
+  #message {
+    color: yellow;
+    font-weight: bold;
+  }
 </style>
 </head>
 
@@ -131,13 +122,11 @@
 
 <div class="marist-card">
 
-  <!-- Header -->
   <div class="header">
     <img src="Marist_Shield.jpg" alt="Marist">
     <h1>Marist</h1>
   </div>
 
-  <!-- Form Inputs -->
   <label>Username</label>
   <input id="username" placeholder="Username">
 
@@ -154,7 +143,6 @@
 
   <p id="message"></p>
 
-  <!-- Users Table -->
   <h3>Registered Users</h3>
   <table>
     <thead>
@@ -172,46 +160,47 @@
 
 <script>
     async function loadUsers() {
-            const response = await fetch("/api/users");
-            const users = await response.json();
+        const response = await fetch("/api/users");
+        const users = await response.json();
 
-            const body = document.getElementById("userTableBody");
-            body.innerHTML = "";
+        const body = document.getElementById("userTableBody");
+        body.innerHTML = "";
 
-            users.forEach(user => {
-                body.innerHTML += `
-                    <tr>
-                        <td>${user.username}</td>
-                        <td>${user.password}</td>
-                        <td>${user.role}</td>
-                    </tr>
-                `;
-            });
+        users.forEach(user => {
+            body.innerHTML += `
+                <tr>
+                    <td>${user.username}</td>
+                    <td>${user.password}</td>
+                    <td>${user.role}</td>
+                </tr>
+            `;
+        });
+    }
+
+    async function registerUser() {
+        const username = document.getElementById("username").value;
+        const password = document.getElementById("password").value;
+        const role = document.getElementById("role").value;
+
+        const response = await fetch("/api/register", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password, role })
+        });
+
+        const text = await response.text();
+
+        if (response.ok) {
+            sessionStorage.setItem("registeredMessage", "Registration successful. You can now log in.");
+            window.location.href = "/";
+        } else {
+            document.getElementById("message").textContent = text;
+            loadUsers();
         }
+    }
 
-        async function registerUser() {
-            const username = document.getElementById("username").value;
-            const password = document.getElementById("password").value;
-            const role = document.getElementById("role").value;
-
-            const response = await fetch("/api/register", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ username, password, role })
-            });
-
-            const text = await response.text();
-
-            if (response.ok) {
-                sessionStorage.setItem("registeredMessage", "Registration successful. You can now log in.");
-                window.location.href = "/";
-            } else {
-                document.getElementById("message").textContent = text;
-                loadUsers();
-            }
-        }
-
-  loadUsers();
+    // FIX: ensure DOM is ready before loading users
+    window.addEventListener("DOMContentLoaded", loadUsers);
 </script>
 
 </body>
