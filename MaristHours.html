@@ -20,11 +20,65 @@
 }
 .schedule thead th {
   border-bottom: 1px solid black;
+  background-color: red;
+  color: white;
 }
 .schedule tbody tr:nth-child(4n+2) td,
 .schedule tbody tr:nth-child(4n+3) td,
 .schedule tbody tr:nth-child(4n+4) td {
   border-bottom: 1px dotted grey;
+}
+
+.blocks-container {
+  margin-top: 30px;
+  padding: 20px;
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.blocks-container h3 {
+  margin-top: 0;
+}
+
+.draggable-block {
+  display: inline-block;
+  padding: 15px;
+  margin: 10px;
+  background-color: #4CAF50;
+  color: white;
+  cursor: move;
+  border-radius: 5px;
+  border: 2px solid #45a049;
+  user-select: none;
+  min-width: 80px;
+  text-align: center;
+  font-weight: bold;
+}
+
+.draggable-block:hover {
+  background-color: #45a049;
+}
+
+.draggable-block.dragging {
+  opacity: 0.7;
+}
+
+.schedule tbody td {
+  position: relative;
+}
+
+.scheduled-block {
+  position: absolute;
+  background-color: #2196F3;
+  color: white;
+  padding: 5px;
+  border-radius: 3px;
+  font-size: 12px;
+  width: 90%;
+  margin: 2px auto;
+  left: 5%;
+  cursor: move;
 }
 </style>
 
@@ -102,9 +156,76 @@
 </tbody>
 </table>
 </div>
+
+<div class="blocks-container">
+  <h3>Drag blocks to add to your schedule:</h3>
+  <div class="draggable-block" draggable="true">Task 1</div>
+  <div class="draggable-block" draggable="true">Task 2</div>
+  <div class="draggable-block" draggable="true">Task 3</div>
+  <div class="draggable-block" draggable="true">Task 4</div>
+</div>
+
 <div class="w3-container">
   <p>This is where we put some words</p>
 </div>
+
+<script>
+let draggedElement = null;
+
+// Get all draggable blocks from the container
+const blocks = document.querySelectorAll('.draggable-block');
+const tableCells = document.querySelectorAll('.schedule tbody td:not(:first-child)');
+
+blocks.forEach(block => {
+  block.addEventListener('dragstart', (e) => {
+    draggedElement = block;
+    block.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'copy';
+  });
+  
+  block.addEventListener('dragend', (e) => {
+    block.classList.remove('dragging');
+  });
+});
+
+tableCells.forEach(cell => {
+  cell.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+    cell.style.backgroundColor = '#e0e0e0';
+  });
+  
+  cell.addEventListener('dragleave', (e) => {
+    cell.style.backgroundColor = '';
+  });
+  
+  cell.addEventListener('drop', (e) => {
+    e.preventDefault();
+    cell.style.backgroundColor = '';
+    
+    if (draggedElement && draggedElement.classList.contains('draggable-block')) {
+      // Create a scheduled block element
+      const scheduledBlock = document.createElement('div');
+      scheduledBlock.className = 'scheduled-block';
+      scheduledBlock.textContent = draggedElement.textContent;
+      scheduledBlock.draggable = true;
+      
+      // Add ability to drag this block out
+      scheduledBlock.addEventListener('dragstart', (e) => {
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', scheduledBlock.textContent);
+        scheduledBlock.style.opacity = '0.5';
+      });
+      
+      scheduledBlock.addEventListener('dragend', (e) => {
+        scheduledBlock.style.opacity = '1';
+      });
+      
+      cell.appendChild(scheduledBlock);
+    }
+  });
+});
+</script>
 
 <div class="w3-container w3-teal">
   <p>My Footer</p>
