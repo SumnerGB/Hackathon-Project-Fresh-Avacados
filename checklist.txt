@@ -27,7 +27,7 @@ For Katelyn (how to run):
 The last things we need to do:
 -Remove/hide the word footer from the teacher and student view DONEDONEDONEDONEDONEDONEDONEDONEDONEDONE
 -Remove/hide the black box in the corner for teacher view DONEDONEDONEDONEDONEDONEDONEDONEDONEDONE
--Remove/hide the table that shows usernames and passwords at login
+-Remove/hide the table that shows usernames and passwords at login DONEDONEDONEDONEDONEDONEDONEDONEDONEDONE
 -If we have time fix it so that the times don't overflow from their box
  so for example 9:45pm is not cut off at 5 in the box.
 -Delete this is where we put some words from the student view
