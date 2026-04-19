@@ -789,6 +789,7 @@ function savePreset() {
   const presetName = prompt('Enter a name for this preset:');
   if (!presetName || presetName.trim() === '') return;
 
+  const trimmedPresetName = presetName.trim();
   const username = getStudentId();
   if (!username) {
     alert("You must be logged in");
@@ -801,7 +802,7 @@ function savePreset() {
     b: Math.floor(Math.random() * 101) + 100
   };
 
-  const scheduledBlocks = document.querySelectorAll('.scheduled-block');
+  const scheduledBlocks = document.querySelectorAll('#teacher-view .scheduled-block');
   const blocks = [];
 
   scheduledBlocks.forEach(block => {
@@ -825,11 +826,11 @@ function savePreset() {
 
   let allPresets = JSON.parse(localStorage.getItem('maristHoursPresets') || "{}");
 
-  allPresets[presetName] = preset;
+  allPresets[trimmedPresetName] = preset;
 
   localStorage.setItem('maristHoursPresets', JSON.stringify(allPresets));
 
-  alert(`Preset "${presetName}" saved!`);
+  alert(`Preset "${trimmedPresetName}" saved!`);
   displayPresets();
 }
 
@@ -998,7 +999,8 @@ function displayPresets() {
   if (!container) {
     return;
   }
-  
+
+  const username = getStudentId();
   const presetsData = localStorage.getItem('maristHoursPresets');
   if (!presetsData) {
     container.innerHTML = '<h3>Teacher Presets:</h3><p class="no-presets-text">No presets available yet. Ask your teacher to save a preset.</p>';
@@ -1054,7 +1056,7 @@ function updatePresetButtonStates() {
 
 function deletePreset(presetName) {
   const username = getStudentId();
-  let allPresets = JSON.parse(localStorage.getItem('maristHoursPresets'));
+  let allPresets = JSON.parse(localStorage.getItem('maristHoursPresets') || '{}');
 
   const preset = allPresets[presetName];
 
