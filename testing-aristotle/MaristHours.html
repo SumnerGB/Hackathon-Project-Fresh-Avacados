@@ -42,6 +42,64 @@ function logout() {
     window.location.href = "/";
 }
 
+function removeOwnedPresetsFromLocal(username) {
+  const raw = localStorage.getItem('maristHoursPresets');
+  if (!raw) return;
+
+  const allPresets = JSON.parse(raw);
+  let changed = false;
+
+  Object.keys(allPresets).forEach(name => {
+    if (allPresets[name] && allPresets[name].owner === username) {
+      delete allPresets[name];
+      activePresets.delete(name);
+      changed = true;
+    }
+  });
+
+  if (changed) {
+    localStorage.setItem('maristHoursPresets', JSON.stringify(allPresets));
+  }
+}
+
+async function deleteCurrentAccount() {
+  const username = getStudentId();
+  if (!username) {
+    alert("No logged in account found.");
+    return;
+  }
+
+  const confirmed = confirm(`Delete the account "${username}" permanently? This cannot be undone.`);
+  if (!confirmed) return;
+
+  try {
+    const response = await fetch('/api/account/delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username })
+    });
+
+    const message = await response.text();
+
+    if (!response.ok) {
+      alert(message || 'Failed to delete account.');
+      return;
+    }
+
+    removeOwnedPresetsFromLocal(username);
+    sessionStorage.clear();
+    localStorage.removeItem('username');
+    localStorage.removeItem('role');
+    localStorage.removeItem('view');
+
+    alert('Account deleted.');
+    window.location.href = '/';
+  } catch (error) {
+    console.error('Error deleting account:', error);
+    alert('Failed to delete account.');
+  }
+}
+
 function addOfficeHour() {
   const teacherName = document.getElementById("teacher").value;
   const time = document.getElementById("time").value;
@@ -149,8 +207,7 @@ function renderOfficeHours() {
     div.style.display = "block";
 
     const scheduleText = getPresetScheduleText(preset.blocks);
-    const isTeacherOne = username === "teacher1";
-    const canDelete = currentRole === "teacher" && (preset.owner === username || isTeacherOne);
+    const canDelete = currentRole === "teacher" && preset.owner === username;
     const safePresetName = presetName.replace(/'/g, "\\'");
 
     div.innerHTML = `
@@ -678,6 +735,12 @@ window.onload = function () {
   <h3>Office Hours:</h3>
 </div>
 
+<div style="margin-top: 20px; margin-bottom: 20px;">
+  <button id="deleteAccountBtn" style="background:#b00020;color:white;border:none;padding:12px 18px;border-radius:5px;cursor:pointer;font-weight:bold;">
+    Delete Account
+  </button>
+</div>
+
 <script>
 
 let draggedElement = null;
@@ -862,6 +925,7 @@ const teacherView = document.getElementById('teacher-view');
 const teacherIndicator = document.querySelector('.teacher-indicator');
 const changeViewBtn = document.getElementById('changeViewBtn');
 const savePresetBtn = document.getElementById('savePresetBtn');
+const deleteAccountBtn = document.getElementById('deleteAccountBtn');
 
 function getCurrentRole() {
   return (sessionStorage.getItem('role') || localStorage.getItem('role') || '').toLowerCase();
@@ -1149,8 +1213,7 @@ presetNames.forEach(name => {
   const preset = allPresets[name];
 
   const isOwner = preset.owner === username;
-  const isTeacherOne = username === 'teacher1';
-  const canDelete = currentRole === 'teacher' && (isOwner || isTeacherOne);
+  const canDelete = currentRole === 'teacher' && isOwner;
 
   html += `
     <div style="margin:10px 0;">
@@ -1198,8 +1261,8 @@ function deletePreset(presetName) {
     return;
   }
 
-  if (preset.owner !== username && username !== "teacher1") {
-    alert("You can only delete presets created by your own account unless you are teacher1.");
+  if (preset.owner !== username) {
+    alert("You can only delete presets created by your own account.");
     return;
   }
 
@@ -1268,6 +1331,10 @@ changeViewBtn.addEventListener('click', () => {
 
 if (savePresetBtn) {
   savePresetBtn.addEventListener('click', savePreset);
+}
+
+if (deleteAccountBtn) {
+  deleteAccountBtn.addEventListener('click', deleteCurrentAccount);
 }
 
 

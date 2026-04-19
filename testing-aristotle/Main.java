@@ -3,6 +3,7 @@ import com.sun.net.httpserver.HttpServer;
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -25,6 +26,7 @@ public class Main {
     }
 
     static List<User> users = new ArrayList<>();
+    static final String USERS_FILE = "testing-aristotle/users.txt";
 
     //Schedule System
     static class Slot {
@@ -60,14 +62,20 @@ public class Main {
 
     //Main
     public static void main(String[] args) throws Exception {
-        users.add(new User("student1", "1234", "student"));
-        users.add(new User("teacher1", "1234", "teacher"));
+        loadUsers();
+
+        if (users.isEmpty()) {
+            users.add(new User("student1", "1234", "student"));
+            users.add(new User("teacher1", "1234", "teacher"));
+            saveUsers();
+        }
 
         HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
 
         server.createContext("/api/register", Main::handleRegister);
         server.createContext("/api/login", Main::handleLogin);
         server.createContext("/api/users", Main::handleUsers);
+        server.createContext("/api/account/delete", Main::handleDeleteAccount);
 
         // ================= NEW API ROUTES =================
         server.createContext("/api/slots/create", Main::handleCreateSlot); // teacher only
@@ -147,6 +155,7 @@ public class Main {
         }
 
         users.add(new User(username, password, role));
+        saveUsers();
         sendText(exchange, 200, "User registered");
     }
 
@@ -195,6 +204,41 @@ public class Main {
         json.append("]");
 
         sendJson(exchange, 200, json.toString());
+    }
+
+    static void handleDeleteAccount(HttpExchange exchange) throws IOException {
+        addCors(exchange);
+
+        if (!exchange.getRequestMethod().equalsIgnoreCase("POST")) {
+            sendText(exchange, 405, "Method not allowed");
+            return;
+        }
+
+        String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+        String username = getJsonValue(body, "username");
+
+        if (username.isEmpty()) {
+            sendText(exchange, 400, "Missing username");
+            return;
+        }
+
+        int userIndex = -1;
+        for (int i = 0; i < users.size(); i++) {
+            if (users.get(i).username.equals(username)) {
+                userIndex = i;
+                break;
+            }
+        }
+
+        if (userIndex == -1) {
+            sendText(exchange, 404, "Account not found");
+            return;
+        }
+
+        users.remove(userIndex);
+        removeUserData(username);
+        saveUsers();
+        sendText(exchange, 200, "Account deleted");
     }
 
     //Teacher only slots
@@ -365,6 +409,69 @@ public class Main {
         json.append("}");
 
         sendJson(exchange, 200, json.toString());
+    }
+
+    static void loadUsers() throws IOException {
+        users.clear();
+
+        File file = new File(USERS_FILE);
+        if (!file.exists()) {
+            return;
+        }
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(file, StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.isBlank()) continue;
+
+                String[] parts = line.split("\t", -1);
+                if (parts.length != 3) continue;
+
+                String username = URLDecoder.decode(parts[0], StandardCharsets.UTF_8);
+                String password = URLDecoder.decode(parts[1], StandardCharsets.UTF_8);
+                String role = URLDecoder.decode(parts[2], StandardCharsets.UTF_8);
+
+                users.add(new User(username, password, role));
+            }
+        }
+    }
+
+    static void saveUsers() throws IOException {
+        File file = new File(USERS_FILE);
+        File parent = file.getParentFile();
+        if (parent != null && !parent.exists()) {
+            parent.mkdirs();
+        }
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file, StandardCharsets.UTF_8))) {
+            for (User u : users) {
+                String line =
+                    URLEncoder.encode(u.username, StandardCharsets.UTF_8) + "\t" +
+                    URLEncoder.encode(u.password, StandardCharsets.UTF_8) + "\t" +
+                    URLEncoder.encode(u.role, StandardCharsets.UTF_8);
+                writer.write(line);
+                writer.newLine();
+            }
+        }
+    }
+
+    static void removeUserData(String username) {
+        for (int i = slots.size() - 1; i >= 0; i--) {
+            Slot slot = slots.get(i);
+            if (username.equals(slot.createdBy)) {
+                slots.remove(i);
+            } else if (username.equals(slot.bookedBy)) {
+                slot.bookedBy = null;
+            }
+        }
+
+        for (int i = attendanceRecords.size() - 1; i >= 0; i--) {
+            Attendance attendance = attendanceRecords.get(i);
+            attendance.students.remove(username);
+            if (attendance.students.isEmpty()) {
+                attendanceRecords.remove(i);
+            }
+        }
     }
 
     //helpers
