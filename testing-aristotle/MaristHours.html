@@ -12,7 +12,6 @@ function getViewMode() {
 </script>
 
 <style>
-/* (you can leave your existing CSS below this or move it here later) */
 </style>
 
 </head>
@@ -815,7 +814,7 @@ tableCells.forEach(cell => {
         
         // Check if block fits (need rowsNeeded rows starting from rowIndex)
         if (rowIndex + rowsNeeded > totalRows) {
-          // Block is too long to fit at this position
+
           return;
         }
         
@@ -831,8 +830,7 @@ tableCells.forEach(cell => {
         attachScheduledBlockHandlers(scheduledBlock);
         cell.appendChild(scheduledBlock);
       } else if (draggedElement.classList.contains('scheduled-block')) {
-        // Move existing scheduled block to this cell
-        // Check if there's enough space for the block at new position
+
         const duration = parseInt(draggedElement.getAttribute('data-duration'));
         const rowsNeeded = duration / 15;
         
@@ -1274,8 +1272,7 @@ function deletePreset(presetName) {
 function switchView() {
   const role = getCurrentRole();
 
-  // Only set teacher=true on initial load if role is teacher
-  // Don't override manual view changes from button clicks
+
   if (role === 'teacher' && teacher === undefined) {
     teacher = true;
   }
