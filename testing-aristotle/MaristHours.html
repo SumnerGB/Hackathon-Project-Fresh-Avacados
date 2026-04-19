@@ -92,8 +92,8 @@ async function deleteCurrentAccount() {
     localStorage.removeItem('role');
     localStorage.removeItem('view');
 
-    alert('Account deleted.');
-    window.location.href = '/';
+    alert(`Account "${username}" deleted.`);
+    window.location.href = '/testing-aristotle/login.html';
   } catch (error) {
     console.error('Error deleting account:', error);
     alert('Failed to delete account.');
