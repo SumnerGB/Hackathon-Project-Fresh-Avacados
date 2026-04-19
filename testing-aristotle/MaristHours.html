@@ -954,12 +954,12 @@ function editPreset(presetName) {
   if (!preset) return;
 
   if (currentRole !== 'teacher') {
-    alert("Only teachers can edit presets.");
+    alert("Only teachers can edit hours.");
     return;
   }
 
   if (preset.owner !== username) {
-    alert("You can only edit presets created by your own account.");
+    alert("You can only edit hours created by your own account.");
     return;
   }
 
