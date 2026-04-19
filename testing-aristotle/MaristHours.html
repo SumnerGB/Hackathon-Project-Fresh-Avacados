@@ -149,7 +149,8 @@ function renderOfficeHours() {
     div.style.display = "block";
 
     const scheduleText = getPresetScheduleText(preset.blocks);
-    const canDelete = currentRole === "teacher" && preset.owner === username;
+    const isTeacherOne = username === "teacher1";
+    const canDelete = currentRole === "teacher" && (preset.owner === username || isTeacherOne);
     const safePresetName = presetName.replace(/'/g, "\\'");
 
     div.innerHTML = `
@@ -1148,7 +1149,8 @@ presetNames.forEach(name => {
   const preset = allPresets[name];
 
   const isOwner = preset.owner === username;
-  const canDelete = currentRole === 'teacher' && isOwner;
+  const isTeacherOne = username === 'teacher1';
+  const canDelete = currentRole === 'teacher' && (isOwner || isTeacherOne);
 
   html += `
     <div style="margin:10px 0;">
@@ -1196,8 +1198,8 @@ function deletePreset(presetName) {
     return;
   }
 
-  if (preset.owner !== username) {
-    alert("You can only delete presets created by your own account.");
+  if (preset.owner !== username && username !== "teacher1") {
+    alert("You can only delete presets created by your own account unless you are teacher1.");
     return;
   }
 
