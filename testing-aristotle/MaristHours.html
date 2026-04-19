@@ -1,3 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Marist Hours</title>
+
+<script>
+function getViewMode() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("view");
+}
+</script>
+
+<style>
+/* (you can leave your existing CSS below this or move it here later) */
+</style>
+
+</head>
+
+<body>
+
 <div class="w3-container w3-teal">
   <h1>Weekly Schedule</h1>
 <div style="display: flex; align-items: center; gap: 20px;">
@@ -7,7 +28,12 @@
       Marist
     </h1>
   </header>
-
+<script>
+function getViewMode() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("view"); 
+}
+</script>
 </div>
 
 </div>
@@ -498,6 +524,7 @@
 
 <button class="control-button" id="changeViewBtn">Change View</button>
 
+
 <script>
 let draggedElement = null;
 
@@ -662,7 +689,19 @@ document.querySelectorAll('.scheduled-block').forEach(block => {
 });
 
 // View Management
-let teacher = true; // Set to true for teacher view, false for student view
+let teacher = false; // default
+
+function initViewFromURL() {
+  const view = getViewMode();
+
+  if (view === "teacher") {
+    teacher = true;
+  } else {
+    teacher = false;
+  }
+
+  switchView();
+}
 const studentView = document.getElementById('student-view');
 const teacherView = document.getElementById('teacher-view');
 const teacherIndicator = document.querySelector('.teacher-indicator');
@@ -932,16 +971,18 @@ function switchView() {
   if (teacher) {
     studentView.classList.remove('active');
     teacherView.classList.add('active');
+
     if (teacherIndicator) {
       teacherIndicator.style.display = 'block';
     }
   } else {
     studentView.classList.add('active');
     teacherView.classList.remove('active');
+
     if (teacherIndicator) {
       teacherIndicator.style.display = 'none';
     }
-    // Display presets when switching to student view
+
     displayPresets();
   }
 }
@@ -957,12 +998,19 @@ if (savePresetBtn) {
   savePresetBtn.addEventListener('click', savePreset);
 }
 
-// Initialize view on page load
-switchView();
+window.onload = function () {
+  initViewFromURL();
+  loadSlots();
+};
 
 // Display presets in student view on initial load
 if (!teacher) {
   displayPresets();
+}
+async function loadSlots() {
+  const res = await fetch('/api/slots/list');
+  const slots = await res.json();
+  console.log("Slots from server:", slots);
 }
 </script>
 
@@ -971,3 +1019,5 @@ if (!teacher) {
 <div class="w3-container w3-teal">
   <p>My Footer</p>
 </div>
+</body>
+</html>

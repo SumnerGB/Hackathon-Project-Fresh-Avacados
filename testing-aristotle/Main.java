@@ -10,6 +10,7 @@ import java.util.List;
 
 public class Main {
 
+
 //User
     static class User {
         String username;
@@ -45,7 +46,6 @@ public class Main {
 
     //Main
     public static void main(String[] args) throws Exception {
-
         users.add(new User("student1", "1234", "student"));
         users.add(new User("teacher1", "1234", "teacher"));
 
@@ -54,6 +54,7 @@ public class Main {
         server.createContext("/", exchange -> serveFile(exchange, "index.html"));
         server.createContext("/register.html", exchange -> serveFile(exchange, "register.html"));
         server.createContext("/dashboard.html", exchange -> serveFile(exchange, "dashboard.html"));
+        server.createContext("/MaristHours.html", exchange -> serveFile(exchange, "MaristHours.html"));
 
         server.createContext("/api/register", Main::handleRegister);
         server.createContext("/api/login", Main::handleLogin);
