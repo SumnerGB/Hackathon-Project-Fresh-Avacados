@@ -715,8 +715,6 @@ window.onload = function () {
 
 <div class="button-container">
   <button class="control-button" id="savePresetBtn">Save</button>
-    <button class="control-button" id="changeViewBtn">Change View</button>
-
 </div>
 </div>
 
@@ -912,7 +910,6 @@ function initViewFromURL() {
 const studentView = document.getElementById('student-view');
 const teacherView = document.getElementById('teacher-view');
 const teacherIndicator = document.querySelector('.teacher-indicator');
-const changeViewBtn = document.getElementById('changeViewBtn');
 const savePresetBtn = document.getElementById('savePresetBtn');
 const deleteAccountBtn = document.getElementById('deleteAccountBtn');
 
@@ -1291,25 +1288,12 @@ function switchView() {
     teacherView.classList.remove('active');
     studentView.classList.add('active');
     if (teacherIndicator) teacherIndicator.style.display = 'none';
-    if (changeViewBtn) {
-      changeViewBtn.style.display = 'inline-block';
-    }
     displayPresets();
   }
 }
 
 
 // Button event listeners
-changeViewBtn.addEventListener('click', () => {
-  // Always allow toggling between views regardless of role
-  teacher = !teacher;
-  try {
-    sessionStorage.setItem('view', teacher ? 'teacher' : 'student');
-  } catch (e) {
-    // ignore storage errors (e.g., private mode)
-  }
-  switchView();
-});
 
 if (savePresetBtn) {
   savePresetBtn.addEventListener('click', savePreset);
