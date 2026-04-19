@@ -1,5 +1,6 @@
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
+
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
@@ -9,6 +10,7 @@ import java.util.List;
 
 public class Main {
 
+    // ================= USERS =================
     static class User {
         String username;
         String password;
@@ -23,7 +25,27 @@ public class Main {
 
     static List<User> users = new ArrayList<>();
 
+    // ================= SCHEDULE SYSTEM =================
+    static class Slot {
+        String id;
+        String teacher;
+        String time;
+        String bookedBy; // student username (null if free)
+
+        Slot(String id, String teacher, String time) {
+            this.id = id;
+            this.teacher = teacher;
+            this.time = time;
+            this.bookedBy = null;
+        }
+    }
+
+    static List<Slot> slots = new ArrayList<>();
+    static int slotIdCounter = 1;
+
+    // ================= MAIN =================
     public static void main(String[] args) throws Exception {
+
         users.add(new User("student1", "1234", "student"));
         users.add(new User("teacher1", "1234", "teacher"));
 
@@ -37,38 +59,37 @@ public class Main {
         server.createContext("/api/login", Main::handleLogin);
         server.createContext("/api/users", Main::handleUsers);
 
+        // ================= NEW API ROUTES =================
+        server.createContext("/api/slots/create", Main::handleCreateSlot); // teacher only
+        server.createContext("/api/slots/book", Main::handleBookSlot);     // student only
+        server.createContext("/api/slots/list", Main::handleListSlots);    // everyone
+
         server.setExecutor(null);
         server.start();
 
         System.out.println("Server running at http://localhost:8080");
     }
 
+    // ================= FILE SERVER =================
     static void serveFile(HttpExchange exchange, String fileName) throws IOException {
         File file = new File(fileName);
         if (!file.exists()) {
-            String response = "File not found";
-            exchange.sendResponseHeaders(404, response.length());
-            OutputStream os = exchange.getResponseBody();
-            os.write(response.getBytes());
-            os.close();
+            sendText(exchange, 404, "File not found");
             return;
         }
 
         byte[] bytes = Files.readAllBytes(file.toPath());
         exchange.getResponseHeaders().set("Content-Type", "text/html; charset=UTF-8");
         exchange.sendResponseHeaders(200, bytes.length);
+
         OutputStream os = exchange.getResponseBody();
         os.write(bytes);
         os.close();
     }
 
+    // ================= REGISTER =================
     static void handleRegister(HttpExchange exchange) throws IOException {
         addCors(exchange);
-
-        if (exchange.getRequestMethod().equalsIgnoreCase("OPTIONS")) {
-            exchange.sendResponseHeaders(204, -1);
-            return;
-        }
 
         if (!exchange.getRequestMethod().equalsIgnoreCase("POST")) {
             sendText(exchange, 405, "Method not allowed");
@@ -81,34 +102,20 @@ public class Main {
         String password = getJsonValue(body, "password");
         String role = getJsonValue(body, "role");
 
-        if (username.isEmpty() || password.isEmpty() || role.isEmpty()) {
-            sendText(exchange, 400, "All fields are required.");
-            return;
-        }
-
-        if (!role.equals("student") && !role.equals("teacher")) {
-            sendText(exchange, 400, "Role must be student or teacher.");
-            return;
-        }
-
-        for (User user : users) {
-            if (user.username.equalsIgnoreCase(username)) {
-                sendText(exchange, 400, "Username already exists.");
+        for (User u : users) {
+            if (u.username.equalsIgnoreCase(username)) {
+                sendText(exchange, 400, "Username already exists");
                 return;
             }
         }
 
         users.add(new User(username, password, role));
-        sendText(exchange, 200, "User registered successfully.");
+        sendText(exchange, 200, "User registered");
     }
 
+    // ================= LOGIN =================
     static void handleLogin(HttpExchange exchange) throws IOException {
         addCors(exchange);
-
-        if (exchange.getRequestMethod().equalsIgnoreCase("OPTIONS")) {
-            exchange.sendResponseHeaders(204, -1);
-            return;
-        }
 
         if (!exchange.getRequestMethod().equalsIgnoreCase("POST")) {
             sendText(exchange, 405, "Method not allowed");
@@ -120,20 +127,18 @@ public class Main {
         String username = getJsonValue(body, "username");
         String password = getJsonValue(body, "password");
 
-        for (User user : users) {
-            if (user.username.equals(username) && user.password.equals(password)) {
-                String json = "{"
-                        + "\"username\":\"" + escape(user.username) + "\","
-                        + "\"role\":\"" + escape(user.role) + "\""
-                        + "}";
+        for (User u : users) {
+            if (u.username.equals(username) && u.password.equals(password)) {
+                String json = "{\"username\":\"" + u.username + "\",\"role\":\"" + u.role + "\"}";
                 sendJson(exchange, 200, json);
                 return;
             }
         }
 
-        sendText(exchange, 401, "Invalid username or password.");
+        sendText(exchange, 401, "Invalid login");
     }
 
+    // ================= USERS =================
     static void handleUsers(HttpExchange exchange) throws IOException {
         addCors(exchange);
 
@@ -144,21 +149,91 @@ public class Main {
 
         StringBuilder json = new StringBuilder("[");
         for (int i = 0; i < users.size(); i++) {
-            User user = users.get(i);
-            json.append("{")
-                .append("\"username\":\"").append(escape(user.username)).append("\",")
-                .append("\"password\":\"").append(escape(user.password)).append("\",")
-                .append("\"role\":\"").append(escape(user.role)).append("\"")
-                .append("}");
-            if (i < users.size() - 1) {
-                json.append(",");
-            }
+            User u = users.get(i);
+            json.append("{\"username\":\"").append(u.username)
+                .append("\",\"role\":\"").append(u.role).append("\"}");
+            if (i < users.size() - 1) json.append(",");
         }
         json.append("]");
 
         sendJson(exchange, 200, json.toString());
     }
 
+    // ================= CREATE SLOT (TEACHER ONLY) =================
+    static void handleCreateSlot(HttpExchange exchange) throws IOException {
+        addCors(exchange);
+
+        String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+
+        String teacher = getJsonValue(body, "teacher");
+        String role = getJsonValue(body, "role");
+        String time = getJsonValue(body, "time");
+
+        if (!role.equals("teacher")) {
+            sendText(exchange, 403, "Only teachers can create slots");
+            return;
+        }
+
+        String id = String.valueOf(slotIdCounter++);
+        slots.add(new Slot(id, teacher, time));
+
+        sendText(exchange, 200, "Slot created with id " + id);
+    }
+
+    // ================= BOOK SLOT (STUDENT ONLY) =================
+    static void handleBookSlot(HttpExchange exchange) throws IOException {
+        addCors(exchange);
+
+        String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+
+        String slotId = getJsonValue(body, "slotId");
+        String student = getJsonValue(body, "student");
+        String role = getJsonValue(body, "role");
+
+        if (!role.equals("student")) {
+            sendText(exchange, 403, "Only students can book slots");
+            return;
+        }
+
+        for (Slot s : slots) {
+            if (s.id.equals(slotId)) {
+
+                if (s.bookedBy != null) {
+                    sendText(exchange, 400, "Slot already booked");
+                    return;
+                }
+
+                s.bookedBy = student;
+                sendText(exchange, 200, "Booked successfully");
+                return;
+            }
+        }
+
+        sendText(exchange, 404, "Slot not found");
+    }
+
+    // ================= LIST SLOTS =================
+    static void handleListSlots(HttpExchange exchange) throws IOException {
+        addCors(exchange);
+
+        StringBuilder json = new StringBuilder("[");
+        for (int i = 0; i < slots.size(); i++) {
+            Slot s = slots.get(i);
+            json.append("{")
+                .append("\"id\":\"").append(s.id).append("\",")
+                .append("\"teacher\":\"").append(s.teacher).append("\",")
+                .append("\"time\":\"").append(s.time).append("\",")
+                .append("\"bookedBy\":\"").append(s.bookedBy).append("\"")
+                .append("}");
+
+            if (i < slots.size() - 1) json.append(",");
+        }
+        json.append("]");
+
+        sendJson(exchange, 200, json.toString());
+    }
+
+    // ================= HELPERS =================
     static void addCors(HttpExchange exchange) {
         exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
         exchange.getResponseHeaders().add("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
@@ -167,7 +242,7 @@ public class Main {
 
     static void sendText(HttpExchange exchange, int status, String response) throws IOException {
         byte[] bytes = response.getBytes(StandardCharsets.UTF_8);
-        exchange.getResponseHeaders().set("Content-Type", "text/plain; charset=UTF-8");
+        exchange.getResponseHeaders().set("Content-Type", "text/plain");
         exchange.sendResponseHeaders(status, bytes.length);
         OutputStream os = exchange.getResponseBody();
         os.write(bytes);
@@ -176,7 +251,7 @@ public class Main {
 
     static void sendJson(HttpExchange exchange, int status, String response) throws IOException {
         byte[] bytes = response.getBytes(StandardCharsets.UTF_8);
-        exchange.getResponseHeaders().set("Content-Type", "application/json; charset=UTF-8");
+        exchange.getResponseHeaders().set("Content-Type", "application/json");
         exchange.sendResponseHeaders(status, bytes.length);
         OutputStream os = exchange.getResponseBody();
         os.write(bytes);
@@ -185,22 +260,14 @@ public class Main {
 
     static String getJsonValue(String json, String key) {
         String search = "\"" + key + "\"";
-        int keyIndex = json.indexOf(search);
-        if (keyIndex == -1) return "";
+        int i = json.indexOf(search);
+        if (i == -1) return "";
 
-        int colonIndex = json.indexOf(":", keyIndex);
-        if (colonIndex == -1) return "";
+        int c = json.indexOf(":", i);
+        int q1 = json.indexOf("\"", c + 1);
+        int q2 = json.indexOf("\"", q1 + 1);
 
-        int firstQuote = json.indexOf("\"", colonIndex + 1);
-        if (firstQuote == -1) return "";
-
-        int secondQuote = json.indexOf("\"", firstQuote + 1);
-        if (secondQuote == -1) return "";
-
-        return json.substring(firstQuote + 1, secondQuote);
-    }
-
-    static String escape(String text) {
-        return text.replace("\\", "\\\\").replace("\"", "\\\"");
+        if (q1 == -1 || q2 == -1) return "";
+        return json.substring(q1 + 1, q2);
     }
 }
