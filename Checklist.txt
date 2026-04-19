@@ -21,6 +21,7 @@ For Katelyn (how to run):
 3) Enter: cd "Software Development 1"
 4) Enter: cd "Hackathon-Project-Fresh-Avacados-1"
 5) Enter: cd "testing-aristotle"
+6) Enter: cd "public"
 6) Enter: javac Main.java
 7) Enter: java Main
 8) It should return something like "Server running at http://localhost:8080", coppy past the link portion into your shitty browser
