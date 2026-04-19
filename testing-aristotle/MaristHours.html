@@ -703,14 +703,13 @@ document.querySelectorAll('.scheduled-block').forEach(block => {
 let teacher = false; // default
 
 function initViewFromURL() {
-  console.log("View mode:", getViewMode());
-console.log("Teacher boolean:", teacher);
-  const view = getViewMode();
+  const storedView = (sessionStorage.getItem('view') || localStorage.getItem('view') || sessionStorage.getItem('role') || localStorage.getItem('role') || '').toLowerCase();
 
-  if (view === "teacher") {
-    teacher = true;
+  if (storedView) {
+    teacher = (storedView === 'teacher');
   } else {
-    teacher = false;
+    const view = getViewMode();
+    teacher = (view === 'teacher');
   }
 
   switchView();
@@ -1000,6 +999,12 @@ function switchView() {
 // Button event listeners
 changeViewBtn.addEventListener('click', () => {
   teacher = !teacher;
+  // Persist the current view so reloads and future visits respect the role
+  try {
+    sessionStorage.setItem('view', teacher ? 'teacher' : 'student');
+  } catch (e) {
+    // ignore storage errors (e.g., private mode)
+  }
   switchView();
 });
 
