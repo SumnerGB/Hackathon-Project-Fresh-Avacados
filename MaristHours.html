@@ -131,6 +131,47 @@
   cursor: move;
 }
 
+.scheduled-block.student-block {
+  cursor: pointer;
+  opacity: 0.8;
+}
+
+.block-label {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  font-size: 9px;
+  background-color: rgba(0, 0, 0, 0.3);
+  padding: 1px 3px;
+  border-radius: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 80%;
+}
+
+.attendance-counter {
+  position: absolute;
+  bottom: 2px;
+  left: 2px;
+  font-size: 11px;
+  background-color: rgba(0, 0, 0, 0.4);
+  padding: 2px 4px;
+  border-radius: 2px;
+  font-weight: bold;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s;
+}
+
+.attendance-counter:hover {
+  background-color: rgba(0, 0, 0, 0.6);
+}
+
+.scheduled-block.student-attending-counter {
+  cursor: pointer;
+}
+
 .scheduled-block[data-duration="15"] {
   height: 12px;
 }
@@ -194,6 +235,76 @@
 .trash-can.active {
   background-color: #ffe6e6;
   border-color: #cc0000;
+}
+
+.button-container {
+  margin-top: 30px;
+  display: flex;
+  gap: 15px;
+}
+
+.control-button {
+  padding: 12px 24px;
+  background-color: #2196F3;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.control-button:hover {
+  background-color: #0b7dda;
+}
+
+.control-button:active {
+  background-color: #0056b3;
+}
+
+.presets-container {
+  margin-top: 30px;
+  padding: 20px;
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.presets-container h3 {
+  margin-top: 0;
+}
+
+.preset-button {
+  display: inline-block;
+  padding: 12px 20px;
+  margin: 10px 10px 10px 0;
+  background-color: #e0e0e0;
+  color: #333;
+  border: 2px solid #999;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s, border-color 0.3s;
+}
+
+.preset-button:hover {
+  background-color: #d0d0d0;
+}
+
+.preset-button.active {
+  background-color: #4CAF50;
+  color: white;
+  border-color: #2d6b1f;
+}
+
+.preset-button.active:hover {
+  background-color: #45a049;
+}
+
+.no-presets-text {
+  color: #666;
+  font-style: italic;
 }
 </style>
 
@@ -272,20 +383,9 @@
 </table>
 </div>
 
-<div class="blocks-container">
-  <h3>Drag blocks to add to your schedule:</h3>
-  <div class="draggable-block" data-duration="15" draggable="true">15 min</div>
-  <div class="draggable-block" data-duration="30" draggable="true">30 min</div>
-  <div class="draggable-block" data-duration="45" draggable="true">45 min</div>
-  <div class="draggable-block" data-duration="60" draggable="true">1 hour</div>
-</div>
-
-<div class="trash-can" id="trashCan">
-  <div class="trash-can-images">
-    <img src="closed_trash_can.png" alt="Trash Can Closed">
-    <img src="open_trash_can.png" alt="Trash Can Open">
-  </div>
-  <p>Delete</p>
+<div class="presets-container" id="studentPresetsContainer">
+  <h3>Teacher Presets:</h3>
+  <p class="no-presets-text">No presets available yet. Ask your teacher to save a preset.</p>
 </div>
 
 <div class="w3-container">
@@ -380,7 +480,7 @@
   <div class="draggable-block" data-duration="60" draggable="true">1 hour</div>
 </div>
 
-<div class="trash-can" id="trashCan">
+<div class="trash-can" id="teacherTrashCan">
   <div class="trash-can-images">
     <img src="closed_trash_can.png" alt="Trash Can Closed">
     <img src="open_trash_can.png" alt="Trash Can Open">
@@ -388,20 +488,55 @@
   <p>Delete</p>
 </div>
 
+<button class="control-button" id="savePresetBtn">Save Preset</button>
+
 <div class="w3-container">
   <p>This is where we put some words</p>
 </div>
 
 </div>
 
+<button class="control-button" id="changeViewBtn">Change View</button>
+
 <script>
 let draggedElement = null;
 
 // Get all draggable blocks from the container
 const blocks = document.querySelectorAll('.draggable-block');
-const tableCells = document.querySelectorAll('.schedule tbody td:not(:first-child)');
+const tableCells = document.querySelectorAll('#teacher-view .schedule tbody td:not(:first-child)');
 const scheduleTable = document.querySelector('.schedule');
-const trashCan = document.getElementById('trashCan');
+const teacherTrashCan = document.getElementById('teacherTrashCan');
+
+// Function to setup trash can listeners
+function setupTrashCanListeners(trashCan) {
+  if (!trashCan) return;
+  
+  trashCan.addEventListener('dragover', (e) => {
+    if (draggedElement && draggedElement.classList.contains('scheduled-block')) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      trashCan.classList.add('active');
+    }
+  });
+
+  trashCan.addEventListener('dragleave', (e) => {
+    trashCan.classList.remove('active');
+  });
+
+  trashCan.addEventListener('drop', (e) => {
+    e.preventDefault();
+    trashCan.classList.remove('active');
+    
+    if (draggedElement && draggedElement.classList.contains('scheduled-block')) {
+      draggedElement._droppedInTrash = true;
+      draggedElement.remove();
+      draggedElement = null;
+    }
+  });
+}
+
+// Setup trash can listeners for both
+setupTrashCanListeners(teacherTrashCan);
 
 blocks.forEach(block => {
   block.addEventListener('dragstart', (e) => {
@@ -488,30 +623,6 @@ tableCells.forEach(cell => {
   });
 });
 
-// Trash can handlers
-trashCan.addEventListener('dragover', (e) => {
-  if (draggedElement && draggedElement.classList.contains('scheduled-block')) {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    trashCan.classList.add('active');
-  }
-});
-
-trashCan.addEventListener('dragleave', (e) => {
-  trashCan.classList.remove('active');
-});
-
-trashCan.addEventListener('drop', (e) => {
-  e.preventDefault();
-  trashCan.classList.remove('active');
-  
-  if (draggedElement && draggedElement.classList.contains('scheduled-block')) {
-    draggedElement._droppedInTrash = true;
-    draggedElement.remove();
-    draggedElement = null;
-  }
-});
-
 function attachScheduledBlockHandlers(scheduledBlock) {
   scheduledBlock.addEventListener('dragstart', (e) => {
     draggedElement = scheduledBlock;
@@ -527,7 +638,7 @@ function attachScheduledBlockHandlers(scheduledBlock) {
   
   scheduledBlock.addEventListener('dragend', (e) => {
     scheduledBlock.style.opacity = '1';
-    trashCan.classList.remove('active');
+    if (teacherTrashCan) teacherTrashCan.classList.remove('active');
     
     // If drop succeeded (in trash or valid cell), don't restore
     if (draggedElement._droppedInTrash) {
@@ -551,10 +662,271 @@ document.querySelectorAll('.scheduled-block').forEach(block => {
 });
 
 // View Management
-const teacher = true; // Set to true for teacher view, false for student view
+let teacher = true; // Set to true for teacher view, false for student view
 const studentView = document.getElementById('student-view');
 const teacherView = document.getElementById('teacher-view');
 const teacherIndicator = document.querySelector('.teacher-indicator');
+const changeViewBtn = document.getElementById('changeViewBtn');
+const savePresetBtn = document.getElementById('savePresetBtn');
+
+function savePreset() {
+  // Prompt for preset name
+  const presetName = prompt('Enter a name for this preset:');
+  if (!presetName || presetName.trim() === '') {
+    return; // User cancelled or entered empty name
+  }
+  
+  // Generate random color between RGB 100-200
+  const randomColor = {
+    r: Math.floor(Math.random() * 101) + 100,
+    g: Math.floor(Math.random() * 101) + 100,
+    b: Math.floor(Math.random() * 101) + 100
+  };
+  
+  // Get all scheduled blocks in the current view
+  const scheduledBlocks = document.querySelectorAll('.scheduled-block');
+  const blocks = [];
+  
+  scheduledBlocks.forEach(block => {
+    const parentCell = block.parentElement;
+    const row = parentCell.parentElement;
+    const tbody = row.parentElement;
+    const rowIndex = Array.from(tbody.children).indexOf(row);
+    const colIndex = Array.from(row.children).indexOf(parentCell);
+    
+    blocks.push({
+      rowIndex: rowIndex,
+      colIndex: colIndex,
+      duration: block.getAttribute('data-duration'),
+      text: block.textContent
+    });
+  });
+  
+  // Create preset object with color and blocks
+  const preset = {
+    color: randomColor,
+    blocks: blocks
+  };
+  
+  // Load existing presets from localStorage
+  let allPresets = {};
+  const presetsData = localStorage.getItem('maristHoursPresets');
+  if (presetsData) {
+    allPresets = JSON.parse(presetsData);
+  }
+  
+  // Add new preset with name
+  allPresets[presetName] = preset;
+  
+  // Save to localStorage
+  localStorage.setItem('maristHoursPresets', JSON.stringify(allPresets));
+  alert('Preset "' + presetName + '" saved successfully!');
+  
+  // Refresh preset display if in student view
+  displayPresets();
+}
+
+// Track active presets
+let activePresets = new Set();
+
+// Generate or retrieve student ID
+function getStudentId() {
+  let studentId = localStorage.getItem('maristHoursStudentId');
+  if (!studentId) {
+    studentId = 'student_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    localStorage.setItem('maristHoursStudentId', studentId);
+  }
+  return studentId;
+}
+
+// Get attendance count for a block
+function getAttendanceCount(blockId) {
+  const attendanceData = localStorage.getItem('maristHoursAttendance');
+  if (!attendanceData) return 0;
+  
+  const attendance = JSON.parse(attendanceData);
+  return attendance[blockId] ? attendance[blockId].length : 0;
+}
+
+// Check if current student is attending
+function isStudentAttending(blockId) {
+  const attendanceData = localStorage.getItem('maristHoursAttendance');
+  if (!attendanceData) return false;
+  
+  const studentId = getStudentId();
+  const attendance = JSON.parse(attendanceData);
+  return attendance[blockId] ? attendance[blockId].includes(studentId) : false;
+}
+
+// Toggle student attendance for a block
+function toggleAttendance(blockId) {
+  const studentId = getStudentId();
+  let attendanceData = localStorage.getItem('maristHoursAttendance');
+  let attendance = attendanceData ? JSON.parse(attendanceData) : {};
+  
+  if (!attendance[blockId]) {
+    attendance[blockId] = [];
+  }
+  
+  const index = attendance[blockId].indexOf(studentId);
+  if (index > -1) {
+    // Remove student
+    attendance[blockId].splice(index, 1);
+  } else {
+    // Add student
+    attendance[blockId].push(studentId);
+  }
+  
+  localStorage.setItem('maristHoursAttendance', JSON.stringify(attendance));
+  
+  // Update the counter display
+  updateBlockCounter(blockId);
+}
+
+// Update counter display for a block
+function updateBlockCounter(blockId) {
+  const blockElement = document.querySelector(`[data-block-id="${blockId}"]`);
+  if (!blockElement) return;
+  
+  const counter = blockElement.querySelector('.attendance-counter');
+  const count = getAttendanceCount(blockId);
+  
+  if (counter) {
+    counter.textContent = count + ' attending';
+  }
+  
+  // Update visual feedback if student is attending
+  if (isStudentAttending(blockId)) {
+    blockElement.classList.add('student-attending-counter');
+  } else {
+    blockElement.classList.remove('student-attending-counter');
+  }
+}
+
+function togglePreset(presetName) {
+  const presetsData = localStorage.getItem('maristHoursPresets');
+  if (!presetsData) {
+    return;
+  }
+  
+  const allPresets = JSON.parse(presetsData);
+  const preset = allPresets[presetName];
+  
+  if (!preset) {
+    return;
+  }
+  
+  const tbody = document.querySelector('#student-view .schedule tbody');
+  
+  // Toggle the preset
+  if (activePresets.has(presetName)) {
+    // Remove this preset's blocks
+    activePresets.delete(presetName);
+    const blocksToRemove = document.querySelectorAll(`#student-view .scheduled-block[data-preset="${presetName.replace(/"/g, '\\"')}"]`);
+    blocksToRemove.forEach(block => block.remove());
+  } else {
+    // Add this preset's blocks
+    activePresets.add(presetName);
+    
+    // Get color from preset (handle both old format and new format)
+    const presetColor = preset.color || { r: 100, g: 100, b: 100 };
+    const colorString = `rgb(${presetColor.r}, ${presetColor.g}, ${presetColor.b})`;
+    
+    // Get blocks array (handle both old format and new format)
+    const blocks = preset.blocks || preset;
+    
+    // Load preset blocks (read-only in student view)
+    blocks.forEach(blockData => {
+      const row = tbody.children[blockData.rowIndex];
+      const cell = row.children[blockData.colIndex];
+      
+      if (cell) {
+        // Create unique block ID
+        const blockId = `${presetName}_${blockData.rowIndex}_${blockData.colIndex}`;
+        
+        const scheduledBlock = document.createElement('div');
+        scheduledBlock.className = 'scheduled-block student-block';
+        scheduledBlock.textContent = blockData.text;
+        scheduledBlock.setAttribute('data-duration', blockData.duration);
+        scheduledBlock.setAttribute('data-preset', presetName);
+        scheduledBlock.setAttribute('data-block-id', blockId);
+        scheduledBlock.style.backgroundColor = colorString;
+        scheduledBlock.draggable = false;
+        
+        // Add click handler for attendance
+        scheduledBlock.addEventListener('click', function(e) {
+          e.stopPropagation();
+          toggleAttendance(blockId);
+        });
+        
+        // Add attendance counter
+        const counter = document.createElement('div');
+        counter.className = 'attendance-counter';
+        const count = getAttendanceCount(blockId);
+        counter.textContent = count + ' attending';
+        scheduledBlock.appendChild(counter);
+        
+        // Add label with preset name
+        const label = document.createElement('div');
+        label.className = 'block-label';
+        label.textContent = presetName;
+        label.title = presetName; // Show full name on hover
+        scheduledBlock.appendChild(label);
+        
+        // Update visual state if student is already attending
+        if (isStudentAttending(blockId)) {
+          scheduledBlock.classList.add('student-attending-counter');
+        }
+        
+        cell.appendChild(scheduledBlock);
+      }
+    });
+  }
+  
+  // Update button styling
+  updatePresetButtonStates();
+}
+
+function displayPresets() {
+  const container = document.getElementById('studentPresetsContainer');
+  if (!container) {
+    return;
+  }
+  
+  const presetsData = localStorage.getItem('maristHoursPresets');
+  if (!presetsData) {
+    container.innerHTML = '<h3>Teacher Presets:</h3><p class="no-presets-text">No presets available yet. Ask your teacher to save a preset.</p>';
+    return;
+  }
+  
+  const allPresets = JSON.parse(presetsData);
+  const presetNames = Object.keys(allPresets);
+  
+  if (presetNames.length === 0) {
+    container.innerHTML = '<h3>Teacher Presets:</h3><p class="no-presets-text">No presets available yet. Ask your teacher to save a preset.</p>';
+    return;
+  }
+  
+  let html = '<h3>Teacher Presets:</h3>';
+  presetNames.forEach(name => {
+    html += '<button class="preset-button" onclick="togglePreset(\'' + name.replace(/'/g, "\\'") + '\')">' + name + '</button>';
+  });
+  
+  container.innerHTML = html;
+  updatePresetButtonStates();
+}
+
+function updatePresetButtonStates() {
+  const buttons = document.querySelectorAll('.preset-button');
+  buttons.forEach(button => {
+    const presetName = button.textContent;
+    if (activePresets.has(presetName)) {
+      button.classList.add('active');
+    } else {
+      button.classList.remove('active');
+    }
+  });
+}
 
 function switchView() {
   if (teacher) {
@@ -569,11 +941,29 @@ function switchView() {
     if (teacherIndicator) {
       teacherIndicator.style.display = 'none';
     }
+    // Display presets when switching to student view
+    displayPresets();
   }
+}
+
+
+// Button event listeners
+changeViewBtn.addEventListener('click', () => {
+  teacher = !teacher;
+  switchView();
+});
+
+if (savePresetBtn) {
+  savePresetBtn.addEventListener('click', savePreset);
 }
 
 // Initialize view on page load
 switchView();
+
+// Display presets in student view on initial load
+if (!teacher) {
+  displayPresets();
+}
 </script>
 
 </div>
