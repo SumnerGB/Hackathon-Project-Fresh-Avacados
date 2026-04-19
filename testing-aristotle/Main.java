@@ -2,9 +2,10 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 import java.io.*;
 import java.net.InetSocketAddress;
+import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.util.AcrrayList;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Main {
@@ -328,7 +329,7 @@ public class Main {
             String[] params = query.split("&");
             for (String param : params) {
                 if (param.startsWith("blockId=")) {
-                    blockId = java.net.URLDecoder.decode(param.substring(8), StandardCharsets.UTF_8);
+                    blockId = URLDecoder.decode(param.substring(8), StandardCharsets.UTF_8);
                     break;
                 }
             }

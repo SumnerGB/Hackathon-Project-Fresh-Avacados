@@ -63,27 +63,94 @@ function addOfficeHour() {
   renderOfficeHours();
 }
 
+function formatTimeFromRowIndex(rowIndex) {
+  const startHour = 8;
+  const totalMinutes = rowIndex * 15;
+  const total = startHour * 60 + totalMinutes;
+  const hours24 = Math.floor(total / 60);
+  const minutes = total % 60;
+  const period = hours24 >= 12 ? "PM" : "AM";
+  const hours12 = ((hours24 + 11) % 12) + 1;
+  const minuteText = minutes.toString().padStart(2, "0");
+  return `${hours12}:${minuteText} ${period}`;
+}
+
+function addMinutesToTimeString(timeString, minutesToAdd) {
+  const match = timeString.match(/^(\d+):(\d+)\s(AM|PM)$/);
+  if (!match) return timeString;
+
+  let hours = parseInt(match[1], 10);
+  const minutes = parseInt(match[2], 10);
+  const period = match[3];
+
+  if (period === "PM" && hours !== 12) hours += 12;
+  if (period === "AM" && hours === 12) hours = 0;
+
+  const totalMinutes = (hours * 60) + minutes + minutesToAdd;
+  const endHours24 = Math.floor(totalMinutes / 60);
+  const endMinutes = totalMinutes % 60;
+  const endPeriod = endHours24 >= 12 ? "PM" : "AM";
+  const endHours12 = ((endHours24 + 11) % 12) + 1;
+  const endMinuteText = endMinutes.toString().padStart(2, "0");
+
+  return `${endHours12}:${endMinuteText} ${endPeriod}`;
+}
+
+function getPresetScheduleText(blocks) {
+  const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
+  if (!Array.isArray(blocks) || blocks.length === 0) {
+    return "No times saved";
+  }
+
+  const byDay = {};
+
+  blocks.forEach(block => {
+    const dayName = days[(block.colIndex || 1) - 1];
+    if (!dayName) return;
+
+    const startTime = formatTimeFromRowIndex(Number(block.rowIndex) || 0);
+    const duration = Number(block.duration) || 0;
+    const endTime = addMinutesToTimeString(startTime, duration);
+
+    if (!byDay[dayName]) {
+      byDay[dayName] = [];
+    }
+
+    byDay[dayName].push(`${startTime} - ${endTime}`);
+  });
+
+  return Object.entries(byDay)
+    .map(([day, times]) => `${day}: ${times.join(", ")}`)
+    .join(" | ");
+}
+
 function renderOfficeHours() {
   const container = document.getElementById("officeHoursContainer");
   if (!container) return;
 
-  let officeHours = JSON.parse(localStorage.getItem("officeHours") || "[]");
+  const allPresets = JSON.parse(localStorage.getItem("maristHoursPresets") || "{}");
+  const presetEntries = Object.entries(allPresets);
 
   container.innerHTML = "<h3>Office Hours:</h3>";
 
-  officeHours.forEach(oh => {
+  if (presetEntries.length === 0) {
+    container.innerHTML += '<p class="no-presets-text">No office hours saved yet.</p>';
+    return;
+  }
+
+  presetEntries.forEach(([presetName, preset]) => {
     const div = document.createElement("div");
-    div.style.margin = "10px";
+    div.style.margin = "10px 0";
     div.style.padding = "10px";
     div.style.background = "#ddd";
-    div.style.display = "flex";
-    div.style.justifyContent = "space-between";
+    div.style.display = "block";
+
+    const scheduleText = getPresetScheduleText(preset.blocks);
 
     div.innerHTML = `
-      <span>${oh.teacherName} - ${oh.time}</span>
-      <button onclick="deleteOfficeHour(${oh.id})" style="background:red;color:white;">
-        Delete
-      </button>
+      <div style="font-weight:bold; margin-bottom:6px;">${presetName}</div>
+      <div>${scheduleText}</div>
     `;
 
     container.appendChild(div);
@@ -229,8 +296,30 @@ window.onload = function () {
 }
 
 .scheduled-block.student-block {
-  cursor: default;
+  cursor: pointer;
   opacity: 0.8;
+}
+
+.attendance-counter {
+  position: absolute;
+  bottom: 2px;
+  left: 2px;
+  font-size: 11px;
+  background-color: rgba(0, 0, 0, 0.4);
+  padding: 2px 4px;
+  border-radius: 2px;
+  font-weight: bold;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s;
+}
+
+.attendance-counter:hover {
+  background-color: rgba(0, 0, 0, 0.6);
+}
+
+.scheduled-block.student-attending-counter {
+  box-shadow: 0 0 0 2px #4CAF50 inset;
 }
 
 .block-label {
@@ -808,6 +897,7 @@ function savePreset() {
 
   alert(`Preset "${trimmedPresetName}" saved!`);
   displayPresets();
+  renderOfficeHours();
 }
 
 // Track active presets
@@ -818,7 +908,59 @@ function getStudentId() {
   return sessionStorage.getItem("username") || localStorage.getItem("username");
 }
 
+async function toggleAttendance(blockId) {
+  const username = getStudentId();
+  const role = getCurrentRole();
 
+  if (!username) {
+    alert("Please log in first");
+    return;
+  }
+
+  if (role === "teacher") {
+    return;
+  }
+
+  try {
+    const response = await fetch("/api/attendance/toggle", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ blockId, username })
+    });
+
+    if (response.ok) {
+      await updateBlockCounter(blockId);
+    } else {
+      console.error("Failed to toggle attendance");
+    }
+  } catch (error) {
+    console.error("Error toggling attendance:", error);
+  }
+}
+
+async function updateBlockCounter(blockId) {
+  const blockElement = document.querySelector(`[data-block-id="${blockId}"]`);
+  if (!blockElement) return;
+
+  try {
+    const response = await fetch(`/api/attendance/get?blockId=${encodeURIComponent(blockId)}`);
+    const data = await response.json();
+
+    const counter = blockElement.querySelector(".attendance-counter");
+    if (counter) {
+      counter.textContent = `${data.count} attending`;
+    }
+
+    const username = getStudentId();
+    if (data.students && data.students.includes(username)) {
+      blockElement.classList.add("student-attending-counter");
+    } else {
+      blockElement.classList.remove("student-attending-counter");
+    }
+  } catch (error) {
+    console.error("Error updating block counter:", error);
+  }
+}
 
 function togglePreset(presetName) {
   const presetsData = localStorage.getItem('maristHoursPresets');
@@ -870,6 +1012,16 @@ function togglePreset(presetName) {
         scheduledBlock.style.backgroundColor = colorString;
         scheduledBlock.draggable = false;
         
+        scheduledBlock.addEventListener("click", function(e) {
+          e.stopPropagation();
+          toggleAttendance(blockId);
+        });
+
+        const counter = document.createElement("div");
+        counter.className = "attendance-counter";
+        counter.textContent = "0 attending";
+        scheduledBlock.appendChild(counter);
+
         // Add label with preset name
         const label = document.createElement('div');
         label.className = 'block-label';
@@ -878,6 +1030,7 @@ function togglePreset(presetName) {
         scheduledBlock.appendChild(label);
         
         cell.appendChild(scheduledBlock);
+        updateBlockCounter(blockId);
         
       }
     });
@@ -969,6 +1122,7 @@ function deletePreset(presetName) {
   activePresets.delete(presetName);
 
   displayPresets();
+  renderOfficeHours();
 }
 
 function switchView() {
