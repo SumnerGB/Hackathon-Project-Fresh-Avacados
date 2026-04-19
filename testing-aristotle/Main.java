@@ -26,7 +26,8 @@ public class Main {
     }
 
     static List<User> users = new ArrayList<>();
-    static final String USERS_FILE = "testing-aristotle/users.txt";
+    static final File APP_DIR = resolveAppDir();
+    static final File USERS_FILE = new File(APP_DIR, "users.txt");
 
     //Schedule System
     static class Slot {
@@ -104,14 +105,14 @@ public class Main {
 
     //File Server
     static void serveFile(HttpExchange exchange, String fileName) throws IOException {
-        File file = new File(fileName);
-        if (!file.exists()) {
+        File file = resolveStaticFile(fileName);
+        if (!file.exists() || !file.isFile()) {
             sendText(exchange, 404, "File not found");
             return;
         }
 
         byte[] bytes = Files.readAllBytes(file.toPath());
-        String contentType = getContentType(fileName);
+        String contentType = getContentType(file.getName());
         exchange.getResponseHeaders().set("Content-Type", contentType);
         exchange.sendResponseHeaders(200, bytes.length);
 
@@ -411,10 +412,42 @@ public class Main {
         sendJson(exchange, 200, json.toString());
     }
 
+    static File resolveAppDir() {
+        File projectSubdir = new File("testing-aristotle");
+        if (projectSubdir.isDirectory()) {
+            return projectSubdir;
+        }
+
+        File currentDir = new File(".");
+        if (new File(currentDir, "MaristHours.html").exists()) {
+            return currentDir;
+        }
+
+        return currentDir;
+    }
+
+    static File resolveStaticFile(String fileName) {
+        String normalized = fileName == null ? "" : fileName.replace("\\", "/");
+
+        while (normalized.startsWith("/")) {
+            normalized = normalized.substring(1);
+        }
+
+        if (normalized.startsWith("testing-aristotle/")) {
+            normalized = normalized.substring("testing-aristotle/".length());
+        }
+
+        if (normalized.isEmpty()) {
+            normalized = "index.html";
+        }
+
+        return new File(APP_DIR, normalized);
+    }
+
     static void loadUsers() throws IOException {
         users.clear();
 
-        File file = new File(USERS_FILE);
+        File file = USERS_FILE;
         if (!file.exists()) {
             return;
         }
@@ -437,7 +470,7 @@ public class Main {
     }
 
     static void saveUsers() throws IOException {
-        File file = new File(USERS_FILE);
+        File file = USERS_FILE;
         File parent = file.getParentFile();
         if (parent != null && !parent.exists()) {
             parent.mkdirs();
