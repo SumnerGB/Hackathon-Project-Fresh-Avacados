@@ -16,6 +16,9 @@ function getViewMode() {
 </style>
 
 </head>
+<button onclick="logout()" style="background:red;color:white;margin-bottom:10px;">
+  Log Out
+</button>
 
 <body>
 
@@ -32,6 +35,11 @@ function getViewMode() {
 function getViewMode() {
   const params = new URLSearchParams(window.location.search);
   return params.get("view"); 
+}
+
+function logout() {
+    sessionStorage.clear();
+    window.location.href = "/";
 }
 </script>
 </div>
@@ -515,7 +523,13 @@ function getViewMode() {
 </div>
 
 <button class="control-button" id="savePresetBtn">Save Preset</button>
+ <label>Teacher</label>
+<input id="teacher">
 
+<label>Time</label>
+<input id="time">
+
+<button onclick="createSlot()">Request Time Block</button>
 <div class="w3-container">
   <p>This is where we put some words</p>
 </div>
@@ -526,6 +540,23 @@ function getViewMode() {
 
 
 <script>
+async function createSlot() {
+  const teacher = document.getElementById("teacher").value;
+  const time = document.getElementById("time").value;
+
+  await fetch("/api/slots/create", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({
+    teacher,
+    time,
+    role: sessionStorage.getItem("role"),
+    createdBy: sessionStorage.getItem("username")
+      })
+    });
+
+    loadSlots();
+}
 let draggedElement = null;
 
 // Get all draggable blocks from the container

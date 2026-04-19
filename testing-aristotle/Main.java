@@ -32,11 +32,12 @@ public class Main {
         String teacher;
         String time;
         String bookedBy; // student username (null if free)
-
-        Slot(String id, String teacher, String time) {
+        String createdBy;
+        Slot(String id, String teacher, String time, String createdBy) {
             this.id = id;
             this.teacher = teacher;
             this.time = time;
+            this.createdBy = createdBy;
             this.bookedBy = null;
         }
     }
@@ -177,7 +178,8 @@ public class Main {
         }
 
         String id = String.valueOf(slotIdCounter++);
-        slots.add(new Slot(id, teacher, time));
+        String createdBy = getJsonValue(body, "createdBy");
+        slots.add(new Slot(id, teacher, time, createdBy));
 
         sendText(exchange, 200, "Slot created with id " + id);
     }
@@ -200,9 +202,14 @@ public class Main {
         for (Slot s : slots) {
             if (s.id.equals(slotId)) {
 
-                if (s.bookedBy != null) {
-                    sendText(exchange, 400, "Slot already booked");
-                    return;
+                if (s.bookedBy != null && !s.bookedBy.equals(student)) {
+                    sendText(exchange, 403, "You cannot modify another student's booking");
+                return;
+                }
+                if (s.bookedBy != null && s.bookedBy.equals(student)) {
+                    s.bookedBy = null;
+                    sendText(exchange, 200, "Booking cancelled");
+                return;
                 }
 
                 s.bookedBy = student;
