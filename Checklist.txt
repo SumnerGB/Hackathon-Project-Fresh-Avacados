@@ -1,8 +1,10 @@
-- Add the abiltiy for teachers to save there office hour presets
--Make alturnite interfaces for teacher and students within the same HTML file
+- Add the abiltiy for teachers to save there office hour presets-DONEDONEDONEDONEDONEDONEDONEDONEDONED
+-Make alturnite interfaces for teacher and students within the same HTML file--DONEDONEDONEDONEDONEDONEDONEDONE
 -Buitify aristotles stuff using my login and signin background
--Make it so it saves teachers office hours and students select time.
--So students can see teachers office hours and put a time block in it
+-Make it so it saves teachers office hours and students select time. -DONEDONEDONEDONEDONE
+-So students can see teachers office hours and put a time block in it-DONEDONEDONEDONEDONEDONEDONEDONE
+-Link login and signup to the MaristHours calendar HTML file. FYI i made teacher view vs student view a boolean so if they log in as a teacher, make the boolean true, and student is false
+
 
 WHAT WE DID:
 -So I maked register buitiful but the pictures don't load on the website part
