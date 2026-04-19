@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Marist Login</title>
+
+<style>
+
+  body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+
+    background: 
+      linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)),
+      url("/marist_other.jpeg");
+
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+
+  .marist-card {
+    background: linear-gradient(135deg, #b30000, #ff1a1a);
+    padding: 30px;
+    border-radius: 20px;
+    box-shadow: 0 12px 30px rgba(179, 0, 0, 0.35);
+    color: white;
+    width: 420px;
+    text-align: center;
+  }
+
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 25px;
+  }
+
+  .header img {
+    height: 90px;
+    width: 90px;
+    background: white;
+    padding: 5px;
+    border-radius: 12px;
+  }
+
+  .header h1 {
+    font-size: 50px;
+    margin: 0;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-shadow: 2px 2px 10px rgba(0,0,0,0.3);
+  }
+
+  label {
+    display: block;
+    text-align: left;
+    margin-top: 15px;
+    font-weight: bold;
+  }
+
+  input {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border-radius: 10px;
+    border: none;
+    outline: none;
+  }
+
+  button {
+    margin-top: 20px;
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    background: white;
+    color: #b30000;
+    transition: 0.2s;
+  }
+
+  button:hover {
+    background: #ffe5e5;
+    transform: scale(1.03);
+  }
+
+  #message {
+    color: yellow;
+    font-weight: bold;
+    margin-top: 10px;
+  }
+
+  #successMessage {
+    color: #b8ffb8;
+    font-weight: bold;
+    margin-top: 10px;
+  }
+
+</style>
+</head>
+
+<body>
+
+<div class="marist-card">
+
+  <!-- Header -->
+  <div class="header">
+    <img src="/Marist_Shield.jpg" alt="Marist">
+    <h1>Marist</h1>
+  </div>
+
+  <!-- Success message -->
+  <p id="successMessage"></p>
+  <p id="message"></p>
+
+  <!-- LOGIN FORM (keeps your API working) -->
+  <label>Username</label>
+  <input id="username" placeholder="Username">
+
+  <label>Password</label>
+  <input id="password" type="password" placeholder="Password">
+
+  <button onclick="login()">Login</button>
+
+  <p>Don't have an account?</p>
+  <a href="/register.html" style="color:white;">Sign up here</a>
+
+</div>
+
+<script>
+  // show registration success message
+  const msg = sessionStorage.getItem("registeredMessage");
+  if (msg) {
+      document.getElementById("successMessage").textContent = msg;
+      sessionStorage.removeItem("registeredMessage");
+  }
+
+  async function login() {
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+
+      const response = await fetch("/api/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password })
+      });
+
+      if (response.ok) {
+          const data = await response.json();
+          localStorage.setItem("username", data.username);
+          localStorage.setItem("role", data.role);
+          window.location.href = "/dashboard.html";
+      } else {
+          document.getElementById("message").textContent = await response.text();
+      }
+  }
+</script>
+
+</body>
+</html>
