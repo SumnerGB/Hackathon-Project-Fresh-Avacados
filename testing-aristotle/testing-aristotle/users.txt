@@ -1,2 +1,0 @@
-student1	1234	student
-teacher1	1234	teacher
