@@ -10,7 +10,7 @@ import java.util.List;
 
 public class Main {
 
-    // ================= USERS =================
+//User
     static class User {
         String username;
         String password;
@@ -25,7 +25,7 @@ public class Main {
 
     static List<User> users = new ArrayList<>();
 
-    // ================= SCHEDULE SYSTEM =================
+    //Schedule System
     static class Slot {
         String id;
         String teacher;
@@ -43,7 +43,7 @@ public class Main {
     static List<Slot> slots = new ArrayList<>();
     static int slotIdCounter = 1;
 
-    // ================= MAIN =================
+    //Main
     public static void main(String[] args) throws Exception {
 
         users.add(new User("student1", "1234", "student"));
@@ -70,7 +70,7 @@ public class Main {
         System.out.println("Server running at http://localhost:8080");
     }
 
-    // ================= FILE SERVER =================
+    //File Server
     static void serveFile(HttpExchange exchange, String fileName) throws IOException {
         File file = new File(fileName);
         if (!file.exists()) {
@@ -87,7 +87,7 @@ public class Main {
         os.close();
     }
 
-    // ================= REGISTER =================
+    //Register
     static void handleRegister(HttpExchange exchange) throws IOException {
         addCors(exchange);
 
@@ -113,7 +113,7 @@ public class Main {
         sendText(exchange, 200, "User registered");
     }
 
-    // ================= LOGIN =================
+    //Login
     static void handleLogin(HttpExchange exchange) throws IOException {
         addCors(exchange);
 
@@ -138,7 +138,7 @@ public class Main {
         sendText(exchange, 401, "Invalid login");
     }
 
-    // ================= USERS =================
+    //User
     static void handleUsers(HttpExchange exchange) throws IOException {
         addCors(exchange);
 
@@ -159,7 +159,7 @@ public class Main {
         sendJson(exchange, 200, json.toString());
     }
 
-    // ================= CREATE SLOT (TEACHER ONLY) =================
+    //Teacher only slots
     static void handleCreateSlot(HttpExchange exchange) throws IOException {
         addCors(exchange);
 
@@ -180,7 +180,7 @@ public class Main {
         sendText(exchange, 200, "Slot created with id " + id);
     }
 
-    // ================= BOOK SLOT (STUDENT ONLY) =================
+    //Book Slot Student only 
     static void handleBookSlot(HttpExchange exchange) throws IOException {
         addCors(exchange);
 
@@ -212,7 +212,7 @@ public class Main {
         sendText(exchange, 404, "Slot not found");
     }
 
-    // ================= LIST SLOTS =================
+    //list slots
     static void handleListSlots(HttpExchange exchange) throws IOException {
         addCors(exchange);
 
@@ -233,7 +233,7 @@ public class Main {
         sendJson(exchange, 200, json.toString());
     }
 
-    // ================= HELPERS =================
+    //helpers
     static void addCors(HttpExchange exchange) {
         exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
         exchange.getResponseHeaders().add("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
