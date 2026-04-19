@@ -44,6 +44,19 @@ public class Main {
     static List<Slot> slots = new ArrayList<>();
     static int slotIdCounter = 1;
 
+    //Attendance tracking
+    static class Attendance {
+        String blockId;
+        List<String> students; // list of student usernames attending
+        
+        Attendance(String blockId) {
+            this.blockId = blockId;
+            this.students = new ArrayList<>();
+        }
+    }
+    
+    static List<Attendance> attendanceRecords = new ArrayList<>();
+
     //Main
     public static void main(String[] args) throws Exception {
         users.add(new User("student1", "1234", "student"));
@@ -59,6 +72,10 @@ public class Main {
         server.createContext("/api/slots/create", Main::handleCreateSlot); // teacher only
         server.createContext("/api/slots/book", Main::handleBookSlot);     // student only
         server.createContext("/api/slots/list", Main::handleListSlots);    // everyone
+        
+        // Attendance routes
+        server.createContext("/api/attendance/toggle", Main::handleToggleAttendance); // student only
+        server.createContext("/api/attendance/get", Main::handleGetAttendance);       // everyone
 
         // Catch-all route for static files (HTML, images, CSS, JS, etc.)
         server.createContext("/", exchange -> {
@@ -255,6 +272,96 @@ public class Main {
             if (i < slots.size() - 1) json.append(",");
         }
         json.append("]");
+
+        sendJson(exchange, 200, json.toString());
+    }
+
+    //Toggle attendance for a student on an office hours block
+    static void handleToggleAttendance(HttpExchange exchange) throws IOException {
+        addCors(exchange);
+
+        String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+
+        String blockId = getJsonValue(body, "blockId");
+        String username = getJsonValue(body, "username");
+
+        if (blockId.isEmpty() || username.isEmpty()) {
+            sendText(exchange, 400, "Missing blockId or username");
+            return;
+        }
+
+        // Find or create attendance record for this block
+        Attendance attendanceRecord = null;
+        for (Attendance a : attendanceRecords) {
+            if (a.blockId.equals(blockId)) {
+                attendanceRecord = a;
+                break;
+            }
+        }
+
+        if (attendanceRecord == null) {
+            attendanceRecord = new Attendance(blockId);
+            attendanceRecords.add(attendanceRecord);
+        }
+
+        // Toggle attendance
+        int studentIndex = attendanceRecord.students.indexOf(username);
+        if (studentIndex > -1) {
+            // Remove student
+            attendanceRecord.students.remove(studentIndex);
+            sendText(exchange, 200, "Attendance removed");
+        } else {
+            // Add student
+            attendanceRecord.students.add(username);
+            sendText(exchange, 200, "Attendance added");
+        }
+    }
+
+    //Get attendance count and list for a block
+    static void handleGetAttendance(HttpExchange exchange) throws IOException {
+        addCors(exchange);
+
+        String query = exchange.getRequestURI().getQuery();
+        String blockId = "";
+
+        if (query != null) {
+            String[] params = query.split("&");
+            for (String param : params) {
+                if (param.startsWith("blockId=")) {
+                    blockId = java.net.URLDecoder.decode(param.substring(8), StandardCharsets.UTF_8);
+                    break;
+                }
+            }
+        }
+
+        if (blockId.isEmpty()) {
+            sendText(exchange, 400, "Missing blockId parameter");
+            return;
+        }
+
+        // Find attendance record
+        Attendance attendanceRecord = null;
+        for (Attendance a : attendanceRecords) {
+            if (a.blockId.equals(blockId)) {
+                attendanceRecord = a;
+                break;
+            }
+        }
+
+        // Build response
+        StringBuilder json = new StringBuilder("{");
+        if (attendanceRecord != null) {
+            json.append("\"count\":").append(attendanceRecord.students.size()).append(",");
+            json.append("\"students\":[");
+            for (int i = 0; i < attendanceRecord.students.size(); i++) {
+                json.append("\"").append(attendanceRecord.students.get(i)).append("\"");
+                if (i < attendanceRecord.students.size() - 1) json.append(",");
+            }
+            json.append("]");
+        } else {
+            json.append("\"count\":0,\"students\":[]");
+        }
+        json.append("}");
 
         sendJson(exchange, 200, json.toString());
     }

@@ -801,77 +801,83 @@ function savePreset() {
 // Track active presets
 let activePresets = new Set();
 
-// Generate or retrieve student ID
+// Get logged-in user account
 function getStudentId() {
-  let studentId = localStorage.getItem('maristHoursStudentId');
-  if (!studentId) {
-    studentId = 'student_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-    localStorage.setItem('maristHoursStudentId', studentId);
+  // Check both sessionStorage and localStorage for username
+  const username = sessionStorage.getItem("username") || localStorage.getItem("username");
+  if (!username) {
+    console.error("User not logged in");
+    return null;
   }
-  return studentId;
+  return username;
 }
 
 // Get attendance count for a block
 function getAttendanceCount(blockId) {
-  const attendanceData = localStorage.getItem('maristHoursAttendance');
-  if (!attendanceData) return 0;
-  
-  const attendance = JSON.parse(attendanceData);
-  return attendance[blockId] ? attendance[blockId].length : 0;
+  // This will be fetched from server via updateBlockCounter
+  const blockElement = document.querySelector(`[data-block-id="${blockId}"]`);
+  if (!blockElement) return 0;
+  const counter = blockElement.querySelector('.attendance-counter');
+  if (!counter) return 0;
+  const match = counter.textContent.match(/(\d+)/);
+  return match ? parseInt(match[1]) : 0;
 }
 
-// Check if current student is attending
+// Check if current student is attending (from DOM state)
 function isStudentAttending(blockId) {
-  const attendanceData = localStorage.getItem('maristHoursAttendance');
-  if (!attendanceData) return false;
-  
-  const studentId = getStudentId();
-  const attendance = JSON.parse(attendanceData);
-  return attendance[blockId] ? attendance[blockId].includes(studentId) : false;
+  const blockElement = document.querySelector(`[data-block-id="${blockId}"]`);
+  return blockElement ? blockElement.classList.contains('student-attending-counter') : false;
 }
 
-// Toggle student attendance for a block
-function toggleAttendance(blockId) {
-  const studentId = getStudentId();
-  let attendanceData = localStorage.getItem('maristHoursAttendance');
-  let attendance = attendanceData ? JSON.parse(attendanceData) : {};
-  
-  if (!attendance[blockId]) {
-    attendance[blockId] = [];
+// Toggle student attendance for a block (server-based)
+async function toggleAttendance(blockId) {
+  const username = getStudentId();
+  if (!username) {
+    alert("Please log in first");
+    return;
   }
-  
-  const index = attendance[blockId].indexOf(studentId);
-  if (index > -1) {
-    // Remove student
-    attendance[blockId].splice(index, 1);
-  } else {
-    // Add student
-    attendance[blockId].push(studentId);
+
+  try {
+    const response = await fetch("/api/attendance/toggle", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({blockId, username})
+    });
+
+    if (response.ok) {
+      // Update the counter display after toggle
+      await updateBlockCounter(blockId);
+    } else {
+      console.error("Failed to toggle attendance");
+    }
+  } catch (error) {
+    console.error("Error toggling attendance:", error);
   }
-  
-  localStorage.setItem('maristHoursAttendance', JSON.stringify(attendance));
-  
-  // Update the counter display
-  updateBlockCounter(blockId);
 }
 
-// Update counter display for a block
-function updateBlockCounter(blockId) {
+// Update counter display for a block (fetch from server)
+async function updateBlockCounter(blockId) {
   const blockElement = document.querySelector(`[data-block-id="${blockId}"]`);
   if (!blockElement) return;
-  
-  const counter = blockElement.querySelector('.attendance-counter');
-  const count = getAttendanceCount(blockId);
-  
-  if (counter) {
-    counter.textContent = count + ' attending';
-  }
-  
-  // Update visual feedback if student is attending
-  if (isStudentAttending(blockId)) {
-    blockElement.classList.add('student-attending-counter');
-  } else {
-    blockElement.classList.remove('student-attending-counter');
+
+  try {
+    const response = await fetch(`/api/attendance/get?blockId=${encodeURIComponent(blockId)}`);
+    const data = await response.json();
+
+    const counter = blockElement.querySelector('.attendance-counter');
+    if (counter) {
+      counter.textContent = data.count + ' attending';
+    }
+
+    // Check if current user is in the attendance list
+    const username = getStudentId();
+    if (data.students && data.students.includes(username)) {
+      blockElement.classList.add('student-attending-counter');
+    } else {
+      blockElement.classList.remove('student-attending-counter');
+    }
+  } catch (error) {
+    console.error("Error updating block counter:", error);
   }
 }
 
@@ -934,8 +940,7 @@ function togglePreset(presetName) {
         // Add attendance counter
         const counter = document.createElement('div');
         counter.className = 'attendance-counter';
-        const count = getAttendanceCount(blockId);
-        counter.textContent = count + ' attending';
+        counter.textContent = '0 attending';
         scheduledBlock.appendChild(counter);
         
         // Add label with preset name
@@ -945,12 +950,10 @@ function togglePreset(presetName) {
         label.title = presetName; // Show full name on hover
         scheduledBlock.appendChild(label);
         
-        // Update visual state if student is already attending
-        if (isStudentAttending(blockId)) {
-          scheduledBlock.classList.add('student-attending-counter');
-        }
-        
         cell.appendChild(scheduledBlock);
+        
+        // Fetch and update attendance from server
+        updateBlockCounter(blockId);
       }
     });
   }
