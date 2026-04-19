@@ -17,7 +17,7 @@ i created the teacher view which is seperate to the student view i have not yet 
 For Katelyn (how to run):
 
 1) Open Terminal
-2) Enter: cd "~/Desktop"
+2) Enter: cd "Desktop"
 3) Enter: cd "Software Development 1"
 4) Enter: cd "Hackathon-Project-Fresh-Avacados-1"
 5) Enter: cd "testing-aristotle"
