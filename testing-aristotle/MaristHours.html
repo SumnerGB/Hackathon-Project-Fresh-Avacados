@@ -832,7 +832,7 @@ function savePreset() {
   }
   
   // Add new preset with name
-  allPresets[presetName] = preset;
+allPresets[presetName] = preset;
   
   // Save to localStorage
   localStorage.setItem('maristHoursPresets', JSON.stringify(allPresets));
@@ -848,7 +848,11 @@ let activePresets = new Set();
 // Get logged-in user account
 function getStudentId() {
   // Check both sessionStorage and localStorage for username
-  const username = sessionStorage.getItem("username") || localStorage.getItem("username");
+  const preset = {
+  owner: username,
+  color: randomColor,
+  blocks: blocks
+};
   if (!username) {
     console.error("User not logged in");
     return null;
@@ -1028,7 +1032,28 @@ function displayPresets() {
   
   let html = '<h3>Teacher Presets:</h3>';
   presetNames.forEach(name => {
-    html += '<button class="preset-button" onclick="togglePreset(\'' + name.replace(/'/g, "\\'") + '\')">' + name + '</button>';
+   const username = getStudentId();
+
+presetNames.forEach(name => {
+  const preset = allPresets[name];
+
+  const isOwner = preset.owner === username;
+
+  html += `
+    <div style="margin:10px 0;">
+      <button class="preset-button" onclick="togglePreset('${name.replace(/'/g, "\\'")}')">
+        ${name}
+      </button>
+      
+      ${isOwner ? `
+        <button onclick="deletePreset('${name.replace(/'/g, "\\'")}')"
+          style="margin-left:10px;background:red;color:white;">
+          Delete
+        </button>
+      ` : ''}
+    </div>
+  `;
+});
   });
   
   container.innerHTML = html;
@@ -1045,6 +1070,30 @@ function updatePresetButtonStates() {
       button.classList.remove('active');
     }
   });
+}
+
+function deletePreset(presetName) {
+  const username = getStudentId();
+  let allPresets = JSON.parse(localStorage.getItem('maristHoursPresets'));
+
+  const preset = allPresets[presetName];
+
+  if (!preset) return;
+
+  // 🔒 ownership check
+  if (preset.owner !== username) {
+    alert("You can only delete your own presets.");
+    return;
+  }
+
+  delete allPresets[presetName];
+
+  localStorage.setItem('maristHoursPresets', JSON.stringify(allPresets));
+
+  // remove active if currently enabled
+  activePresets.delete(presetName);
+
+  displayPresets();
 }
 
 function switchView() {
