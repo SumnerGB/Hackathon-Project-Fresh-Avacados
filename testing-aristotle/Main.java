@@ -78,16 +78,14 @@ public class Main {
         server.createContext("/api/users", Main::handleUsers);
         server.createContext("/api/account/delete", Main::handleDeleteAccount);
 
-        // ================= NEW API ROUTES =================
         server.createContext("/api/slots/create", Main::handleCreateSlot); // teacher only
         server.createContext("/api/slots/book", Main::handleBookSlot);     // student only
         server.createContext("/api/slots/list", Main::handleListSlots);    // everyone
         
-        // Attendance routes
         server.createContext("/api/attendance/toggle", Main::handleToggleAttendance); // student only
         server.createContext("/api/attendance/get", Main::handleGetAttendance);       // everyone
 
-        // Catch-all route for static files (HTML, images, CSS, JS, etc.)
+
         server.createContext("/", exchange -> {
             String path = exchange.getRequestURI().getPath();
             if (path.equals("/")) {

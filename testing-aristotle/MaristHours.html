@@ -12,7 +12,6 @@ function getViewMode() {
 </script>
 
 <style>
-/* (you can leave your existing CSS below this or move it here later) */
 </style>
 
 </head>
@@ -712,11 +711,10 @@ window.onload = function () {
   <p>Delete</p>
 </div>
 
-</div>
 
 <div class="button-container">
-  <button class="control-button" id="savePresetBtn">Save Hours</button>
-  <button class="control-button" id="changeViewBtn">Change View</button>
+  <button class="control-button" id="savePresetBtn">Save</button>
+</div>
 </div>
 
 <div id="officeHoursContainer" class="presets-container">
@@ -816,7 +814,7 @@ tableCells.forEach(cell => {
         
         // Check if block fits (need rowsNeeded rows starting from rowIndex)
         if (rowIndex + rowsNeeded > totalRows) {
-          // Block is too long to fit at this position
+
           return;
         }
         
@@ -832,8 +830,7 @@ tableCells.forEach(cell => {
         attachScheduledBlockHandlers(scheduledBlock);
         cell.appendChild(scheduledBlock);
       } else if (draggedElement.classList.contains('scheduled-block')) {
-        // Move existing scheduled block to this cell
-        // Check if there's enough space for the block at new position
+
         const duration = parseInt(draggedElement.getAttribute('data-duration'));
         const rowsNeeded = duration / 15;
         
@@ -911,7 +908,6 @@ function initViewFromURL() {
 const studentView = document.getElementById('student-view');
 const teacherView = document.getElementById('teacher-view');
 const teacherIndicator = document.querySelector('.teacher-indicator');
-const changeViewBtn = document.getElementById('changeViewBtn');
 const savePresetBtn = document.getElementById('savePresetBtn');
 const deleteAccountBtn = document.getElementById('deleteAccountBtn');
 
@@ -1276,8 +1272,7 @@ function deletePreset(presetName) {
 function switchView() {
   const role = getCurrentRole();
 
-  // Only set teacher=true on initial load if role is teacher
-  // Don't override manual view changes from button clicks
+
   if (role === 'teacher' && teacher === undefined) {
     teacher = true;
   }
@@ -1290,25 +1285,12 @@ function switchView() {
     teacherView.classList.remove('active');
     studentView.classList.add('active');
     if (teacherIndicator) teacherIndicator.style.display = 'none';
-    if (changeViewBtn) {
-      changeViewBtn.style.display = 'inline-block';
-    }
     displayPresets();
   }
 }
 
 
 // Button event listeners
-changeViewBtn.addEventListener('click', () => {
-  // Always allow toggling between views regardless of role
-  teacher = !teacher;
-  try {
-    sessionStorage.setItem('view', teacher ? 'teacher' : 'student');
-  } catch (e) {
-    // ignore storage errors (e.g., private mode)
-  }
-  switchView();
-});
 
 if (savePresetBtn) {
   savePresetBtn.addEventListener('click', savePreset);
