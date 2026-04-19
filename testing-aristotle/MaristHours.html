@@ -728,11 +728,13 @@ window.onload = function () {
   <p>Delete</p>
 </div>
 
-<button class="control-button" id="savePresetBtn">Save Hours</button>
-
 </div>
 
-<button class="control-button" id="changeViewBtn">Change View</button>
+<div class="button-container">
+  <button class="control-button" id="savePresetBtn">Save Hours</button>
+  <button class="control-button" id="changeViewBtn">Change View</button>
+</div>
+
 <div id="officeHoursContainer" class="presets-container">
   <h3>Office Hours:</h3>
 </div>
@@ -1290,7 +1292,9 @@ function deletePreset(presetName) {
 function switchView() {
   const role = getCurrentRole();
 
-  if (role === 'teacher') {
+  // Only set teacher=true on initial load if role is teacher
+  // Don't override manual view changes from button clicks
+  if (role === 'teacher' && teacher === undefined) {
     teacher = true;
   }
 
@@ -1298,9 +1302,6 @@ function switchView() {
     studentView.classList.remove('active');
     teacherView.classList.add('active');
     if (teacherIndicator) teacherIndicator.style.display = 'block';
-    if (changeViewBtn && role === 'teacher') {
-      changeViewBtn.style.display = 'none';
-    }
   } else {
     teacherView.classList.remove('active');
     studentView.classList.add('active');
@@ -1315,13 +1316,7 @@ function switchView() {
 
 // Button event listeners
 changeViewBtn.addEventListener('click', () => {
-  const role = getCurrentRole();
-  if (role === 'teacher') {
-    teacher = true;
-    switchView();
-    return;
-  }
-
+  // Always allow toggling between views regardless of role
   teacher = !teacher;
   try {
     sessionStorage.setItem('view', teacher ? 'teacher' : 'student');
