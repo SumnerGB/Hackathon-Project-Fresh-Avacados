@@ -838,18 +838,10 @@ let activePresets = new Set();
 
 // Get logged-in user account
 function getStudentId() {
-  // Check both sessionStorage and localStorage for username
-  const preset = {
-  owner: username,
-  color: randomColor,
-  blocks: blocks
-};
-  if (!username) {
-    console.error("User not logged in");
-    return null;
-  }
-  return username;
+  return sessionStorage.getItem("username") || localStorage.getItem("username");
 }
+
+
 
 // Get attendance count for a block
 function getAttendanceCount(blockId) {
@@ -1022,8 +1014,6 @@ function displayPresets() {
   }
   
   let html = '<h3>Teacher Presets:</h3>';
-  presetNames.forEach(name => {
-   const username = getStudentId();
 
 presetNames.forEach(name => {
   const preset = allPresets[name];
@@ -1045,7 +1035,6 @@ presetNames.forEach(name => {
     </div>
   `;
 });
-  });
   
   container.innerHTML = html;
   updatePresetButtonStates();
@@ -1117,10 +1106,7 @@ if (savePresetBtn) {
   savePresetBtn.addEventListener('click', savePreset);
 }
 
-window.onload = function () {
-  initViewFromURL();
-  loadSlots();
-};
+
 
 // Display presets in student view on initial load
 if (!teacher) {
