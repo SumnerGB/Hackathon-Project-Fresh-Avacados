@@ -156,10 +156,16 @@ function renderOfficeHours() {
       <div style="font-weight:bold; margin-bottom:6px;">${presetName}</div>
       <div>${scheduleText}</div>
       ${canDelete ? `
-        <button onclick="deletePreset('${safePresetName}')"
-          style="margin-top:8px;background:red;color:white;border:none;padding:8px 12px;border-radius:4px;cursor:pointer;">
-          Delete Preset
-        </button>
+        <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap;">
+          <button onclick="editPreset('${safePresetName}')"
+            style="background:#ff9800;color:white;border:none;padding:8px 12px;border-radius:4px;cursor:pointer;">
+            Edit Preset
+          </button>
+          <button onclick="deletePreset('${safePresetName}')"
+            style="background:red;color:white;border:none;padding:8px 12px;border-radius:4px;cursor:pointer;">
+            Delete Preset
+          </button>
+        </div>
       ` : ""}
     `;
 
@@ -860,18 +866,76 @@ function getCurrentRole() {
   return (sessionStorage.getItem('role') || localStorage.getItem('role') || '').toLowerCase();
 }
 
-function savePreset() {
-  const presetName = prompt('Enter a name for this preset:');
-  if (!presetName || presetName.trim() === '') return;
+function clearTeacherSchedule() {
+  document.querySelectorAll('#teacher-view .scheduled-block').forEach(block => block.remove());
+}
 
-  const trimmedPresetName = presetName.trim();
+function loadPresetIntoTeacherSchedule(preset) {
+  const tbody = document.querySelector('#teacher-view .schedule tbody');
+  if (!tbody || !preset || !Array.isArray(preset.blocks)) return;
+
+  preset.blocks.forEach(blockData => {
+    const row = tbody.children[blockData.rowIndex];
+    if (!row) return;
+
+    const cell = row.children[blockData.colIndex];
+    if (!cell) return;
+
+    const scheduledBlock = document.createElement('div');
+    scheduledBlock.className = 'scheduled-block';
+    scheduledBlock.textContent = blockData.text;
+    scheduledBlock.draggable = true;
+    scheduledBlock.setAttribute('data-duration', blockData.duration);
+
+    attachScheduledBlockHandlers(scheduledBlock);
+    cell.appendChild(scheduledBlock);
+  });
+}
+
+function editPreset(presetName) {
+  const username = getStudentId();
+  const currentRole = getCurrentRole();
+  const allPresets = JSON.parse(localStorage.getItem('maristHoursPresets') || '{}');
+  const preset = allPresets[presetName];
+
+  if (!preset) return;
+
+  if (currentRole !== 'teacher') {
+    alert("Only teachers can edit presets.");
+    return;
+  }
+
+  if (preset.owner !== username) {
+    alert("You can only edit presets created by your own account.");
+    return;
+  }
+
+  editingPresetName = presetName;
+  clearTeacherSchedule();
+  loadPresetIntoTeacherSchedule(preset);
+
+  if (savePresetBtn) {
+    savePresetBtn.textContent = `Update Preset: ${presetName}`;
+  }
+
+  teacher = true;
+  switchView();
+}
+
+function savePreset() {
   const username = getStudentId();
   if (!username) {
     alert("You must be logged in");
     return;
   }
 
-  const randomColor = {
+  const trimmedPresetName = editingPresetName || (prompt('Enter a name for this preset:') || '').trim();
+  if (!trimmedPresetName) return;
+
+  let allPresets = JSON.parse(localStorage.getItem('maristHoursPresets') || "{}");
+  const existingPreset = allPresets[trimmedPresetName];
+
+  const presetColor = existingPreset?.color || {
     r: Math.floor(Math.random() * 101) + 100,
     g: Math.floor(Math.random() * 101) + 100,
     b: Math.floor(Math.random() * 101) + 100
@@ -895,23 +959,29 @@ function savePreset() {
 
   const preset = {
     owner: username,
-    color: randomColor,
+    color: presetColor,
     blocks: blocks
   };
-
-  let allPresets = JSON.parse(localStorage.getItem('maristHoursPresets') || "{}");
 
   allPresets[trimmedPresetName] = preset;
 
   localStorage.setItem('maristHoursPresets', JSON.stringify(allPresets));
 
-  alert(`Preset "${trimmedPresetName}" saved!`);
+  const wasEditing = editingPresetName !== null;
+  editingPresetName = null;
+
+  if (savePresetBtn) {
+    savePresetBtn.textContent = 'Save Preset';
+  }
+
+  alert(wasEditing ? `Preset "${trimmedPresetName}" updated!` : `Preset "${trimmedPresetName}" saved!`);
   displayPresets();
   renderOfficeHours();
 }
 
 // Track active presets
 let activePresets = new Set();
+let editingPresetName = null;
 
 // Get logged-in user account
 function getStudentId() {
@@ -1137,6 +1207,14 @@ function deletePreset(presetName) {
 
   // remove active if currently enabled
   activePresets.delete(presetName);
+
+  if (editingPresetName === presetName) {
+    editingPresetName = null;
+    clearTeacherSchedule();
+    if (savePresetBtn) {
+      savePresetBtn.textContent = 'Save Preset';
+    }
+  }
 
   displayPresets();
   renderOfficeHours();
