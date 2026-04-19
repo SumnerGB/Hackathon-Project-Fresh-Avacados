@@ -152,6 +152,7 @@ public class Main {
         for (int i = 0; i < users.size(); i++) {
             User u = users.get(i);
             json.append("{\"username\":\"").append(u.username)
+               .append("\",\"password\":\"").append(u.password)
                 .append("\",\"role\":\"").append(u.role).append("\"}");
             if (i < users.size() - 1) json.append(",");
         }
