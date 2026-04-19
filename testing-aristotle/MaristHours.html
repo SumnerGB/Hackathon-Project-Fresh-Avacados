@@ -1047,6 +1047,7 @@ function displayPresets() {
   }
 
   const username = getStudentId();
+  const currentRole = getCurrentRole();
   const presetsData = localStorage.getItem('maristHoursPresets');
   if (!presetsData) {
     container.innerHTML = '<h3>Teacher Presets:</h3><p class="no-presets-text">No presets available yet. Ask your teacher to save a preset.</p>';
@@ -1067,6 +1068,7 @@ presetNames.forEach(name => {
   const preset = allPresets[name];
 
   const isOwner = preset.owner === username;
+  const canDelete = currentRole === 'teacher' && isOwner;
 
   html += `
     <div style="margin:10px 0;">
@@ -1074,7 +1076,7 @@ presetNames.forEach(name => {
         ${name}
       </button>
       
-      ${isOwner ? `
+      ${canDelete ? `
         <button onclick="deletePreset('${name.replace(/'/g, "\\'")}')"
           style="margin-left:10px;background:red;color:white;">
           Delete
@@ -1102,15 +1104,20 @@ function updatePresetButtonStates() {
 
 function deletePreset(presetName) {
   const username = getStudentId();
+  const currentRole = getCurrentRole();
   let allPresets = JSON.parse(localStorage.getItem('maristHoursPresets') || '{}');
 
   const preset = allPresets[presetName];
 
   if (!preset) return;
 
-  // 🔒 ownership check
+  if (currentRole !== 'teacher') {
+    alert("Only teachers can delete presets.");
+    return;
+  }
+
   if (preset.owner !== username) {
-    alert("You can only delete your own presets.");
+    alert("You can only delete presets created by your own account.");
     return;
   }
 
