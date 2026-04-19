@@ -1,6 +1,5 @@
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
-
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
@@ -52,11 +51,6 @@ public class Main {
 
         HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
 
-        server.createContext("/", exchange -> serveFile(exchange, "index.html"));
-        server.createContext("/register.html", exchange -> serveFile(exchange, "register.html"));
-        server.createContext("/dashboard.html", exchange -> serveFile(exchange, "dashboard.html"));
-        server.createContext("/MaristHours.html", exchange -> serveFile(exchange, "MaristHours.html"));
-
         server.createContext("/api/register", Main::handleRegister);
         server.createContext("/api/login", Main::handleLogin);
         server.createContext("/api/users", Main::handleUsers);
@@ -65,6 +59,16 @@ public class Main {
         server.createContext("/api/slots/create", Main::handleCreateSlot); // teacher only
         server.createContext("/api/slots/book", Main::handleBookSlot);     // student only
         server.createContext("/api/slots/list", Main::handleListSlots);    // everyone
+
+        // Catch-all route for static files (HTML, images, CSS, JS, etc.)
+        server.createContext("/", exchange -> {
+            String path = exchange.getRequestURI().getPath();
+            if (path.equals("/")) {
+                serveFile(exchange, "index.html");
+            } else {
+                serveFile(exchange, path.substring(1)); // Remove leading slash
+            }
+        });
 
         server.setExecutor(null);
         server.start();
@@ -81,12 +85,25 @@ public class Main {
         }
 
         byte[] bytes = Files.readAllBytes(file.toPath());
-        exchange.getResponseHeaders().set("Content-Type", "text/html; charset=UTF-8");
+        String contentType = getContentType(fileName);
+        exchange.getResponseHeaders().set("Content-Type", contentType);
         exchange.sendResponseHeaders(200, bytes.length);
 
         OutputStream os = exchange.getResponseBody();
         os.write(bytes);
         os.close();
+    }
+
+    //Determine Content-Type based on file extension
+    static String getContentType(String fileName) {
+        if (fileName.endsWith(".html")) return "text/html; charset=UTF-8";
+        if (fileName.endsWith(".css")) return "text/css";
+        if (fileName.endsWith(".js")) return "text/javascript";
+        if (fileName.endsWith(".jpg") || fileName.endsWith(".jpeg")) return "image/jpeg";
+        if (fileName.endsWith(".png")) return "image/png";
+        if (fileName.endsWith(".gif")) return "image/gif";
+        if (fileName.endsWith(".json")) return "application/json";
+        return "application/octet-stream";
     }
 
     //Register
