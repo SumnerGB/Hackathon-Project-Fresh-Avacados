@@ -158,7 +158,7 @@
           const data = await response.json();
           localStorage.setItem("username", data.username);
           localStorage.setItem("role", data.role);
-          window.location.href = "/dashboard.html";
+          window.location.href = "/MaristHours.html";
       } else {
           document.getElementById("message").textContent = await response.text();
       }
