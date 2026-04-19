@@ -41,6 +41,69 @@ function logout() {
     sessionStorage.clear();
     window.location.href = "/";
 }
+
+function addOfficeHour() {
+  const teacherName = document.getElementById("teacher").value;
+  const time = document.getElementById("time").value;
+
+  if (!teacherName || !time) return;
+
+  let officeHours = JSON.parse(localStorage.getItem("officeHours") || "[]");
+
+  const id = Date.now();
+
+  officeHours.push({
+    id,
+    teacherName,
+    time
+  });
+
+  localStorage.setItem("officeHours", JSON.stringify(officeHours));
+
+  renderOfficeHours();
+}
+
+function renderOfficeHours() {
+  const container = document.getElementById("officeHoursContainer");
+  if (!container) return;
+
+  let officeHours = JSON.parse(localStorage.getItem("officeHours") || "[]");
+
+  container.innerHTML = "<h3>Office Hours:</h3>";
+
+  officeHours.forEach(oh => {
+    const div = document.createElement("div");
+    div.style.margin = "10px";
+    div.style.padding = "10px";
+    div.style.background = "#ddd";
+    div.style.display = "flex";
+    div.style.justifyContent = "space-between";
+
+    div.innerHTML = `
+      <span>${oh.teacherName} - ${oh.time}</span>
+      <button onclick="deleteOfficeHour(${oh.id})" style="background:red;color:white;">
+        Delete
+      </button>
+    `;
+
+    container.appendChild(div);
+  });
+}
+
+function deleteOfficeHour(id) {
+  let officeHours = JSON.parse(localStorage.getItem("officeHours") || "[]");
+
+  officeHours = officeHours.filter(o => o.id !== id);
+
+  localStorage.setItem("officeHours", JSON.stringify(officeHours));
+
+  renderOfficeHours();
+}
+window.onload = function () {
+  initViewFromURL();
+  loadSlots();
+  renderOfficeHours();
+};
 </script>
 </div>
 
@@ -533,7 +596,9 @@ function logout() {
 </div>
 
 <button class="control-button" id="changeViewBtn">Change View</button>
-
+<div id="officeHoursContainer" class="presets-container">
+  <h3>Office Hours:</h3>
+</div>
 
 <script>
 
