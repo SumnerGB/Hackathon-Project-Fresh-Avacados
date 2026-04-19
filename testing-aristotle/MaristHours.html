@@ -1,171 +1,65 @@
 <!DOCTYPE html>
 <html>
 <head>
+
 <title>Marist Hours</title>
-
-<style>
-.view-container { display:none; }
-.view-container.active { display:block; }
-
-.teacher-indicator {
-  position: fixed;
-  bottom: 10px;
-  left: 10px;
-  width: 20px;
-  height: 20px;
-  background: black;
-  z-index: 9999;
-}
-
-.schedule table {
-  width:100%;
-  border-collapse:collapse;
-  table-layout:fixed;
-  border:1px solid black;
-}
-
-.schedule th, .schedule td {
-  border:1px solid black;
-}
-
-.schedule thead th {
-  background:red;
-  color:white;
-}
-
-.draggable-block {
-  padding:10px;
-  margin:5px;
-  background:#4CAF50;
-  color:white;
-  cursor:grab;
-  display:inline-block;
-}
-
-.scheduled-block {
-  position:absolute;
-  background:#2196F3;
-  color:white;
-  padding:5px;
-  font-size:12px;
-  width:90%;
-  left:5%;
-  top:0;
-}
-
-.preset-button.active {
-  background:#4CAF50;
-  color:white;
-}
-</style>
 
 <script>
 function getViewMode() {
-  return new URLSearchParams(window.location.search).get("view");
-}
-
-function logout() {
-  sessionStorage.clear();
-  location.href = "/";
+  const params = new URLSearchParams(window.location.search);
+  return params.get("view");
 }
 </script>
 
+<style>
+/* (you can leave your existing CSS below this or move it here later) */
+</style>
+
 </head>
-
-<body>
-
-<button onclick="logout()" style="background:red;color:white;">
+<button onclick="logout()" style="background:red;color:white;margin-bottom:10px;">
   Log Out
 </button>
 
-<div class="teacher-indicator" style="display:none;"></div>
+<body>
 
 <div class="w3-container w3-teal">
-  <h1>Marist Weekly Schedule</h1>
-</div>
-
-<!-- STUDENT VIEW -->
-<div id="student-view" class="view-container active">
-  <div class="schedule"></div>
-  <div id="studentPresetsContainer"></div>
-</div>
-
-<!-- TEACHER VIEW -->
-<div id="teacher-view" class="view-container">
-
-  <div class="schedule"></div>
-
-  <div>
-    <div class="draggable-block" data-duration="15" draggable="true">15 min</div>
-    <div class="draggable-block" data-duration="30" draggable="true">30 min</div>
-    <div class="draggable-block" data-duration="45" draggable="true">45 min</div>
-    <div class="draggable-block" data-duration="60" draggable="true">1 hour</div>
-  </div>
-
-  <button id="savePresetBtn">Save Preset</button>
-
-  <label>Teacher</label>
-  <input id="teacher">
-
-  <label>Time</label>
-  <input id="time">
-
-  <div id="officeHoursContainer"></div>
-
-</div>
-
-<button id="changeViewBtn">Change View</button>
-
+  <h1>Weekly Schedule</h1>
+<div style="display: flex; align-items: center; gap: 20px;">
+  <img src="Marist_Shield.jpg" alt="Marist" height="100" width="100">
+  <header>
+    <h1 style="font-size: 60px; font-weight: bold; margin: 0;">
+      Marist
+    </h1>
+  </header>
 <script>
-
-let teacher = false;
-let draggedElement = null;
-let activePresets = new Set();
-
-const studentView = document.getElementById("student-view");
-const teacherView = document.getElementById("teacher-view");
-const indicator = document.querySelector(".teacher-indicator");
-
-function getUser() {
-  return sessionStorage.getItem("username") || localStorage.getItem("username");
+function getViewMode() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("view"); 
 }
 
-/* VIEW SYSTEM */
-function initView() {
-  const v = getViewMode();
-  teacher = (v === "teacher");
-  switchView();
+function logout() {
+    sessionStorage.clear();
+    window.location.href = "/";
 }
 
-function switchView() {
-  if (teacher) {
-    studentView.classList.remove("active");
-    teacherView.classList.add("active");
-    indicator.style.display = "block";
-  } else {
-    teacherView.classList.remove("active");
-    studentView.classList.add("active");
-    indicator.style.display = "none";
-    displayPresets();
-  }
-}
-
-/* OFFICE HOURS (FIXED + COMBINED) */
 function addOfficeHour() {
-  const teacherName = document.getElementById("teacher")?.value;
-  const time = document.getElementById("time")?.value;
+  const teacherName = document.getElementById("teacher").value;
+  const time = document.getElementById("time").value;
 
   if (!teacherName || !time) return;
 
-  let list = JSON.parse(localStorage.getItem("officeHours") || "[]");
+  let officeHours = JSON.parse(localStorage.getItem("officeHours") || "[]");
 
-  list.push({
-    id: Date.now(),
+  const id = Date.now();
+
+  officeHours.push({
+    id,
     teacherName,
     time
   });
 
-  localStorage.setItem("officeHours", JSON.stringify(list));
+  localStorage.setItem("officeHours", JSON.stringify(officeHours));
+
   renderOfficeHours();
 }
 
@@ -173,103 +67,1062 @@ function renderOfficeHours() {
   const container = document.getElementById("officeHoursContainer");
   if (!container) return;
 
-  const list = JSON.parse(localStorage.getItem("officeHours") || "[]");
+  let officeHours = JSON.parse(localStorage.getItem("officeHours") || "[]");
 
-  container.innerHTML = "<h3>Office Hours</h3>";
+  container.innerHTML = "<h3>Office Hours:</h3>";
 
-  list.forEach(o => {
+  officeHours.forEach(oh => {
     const div = document.createElement("div");
+    div.style.margin = "10px";
+    div.style.padding = "10px";
+    div.style.background = "#ddd";
+    div.style.display = "flex";
+    div.style.justifyContent = "space-between";
+
     div.innerHTML = `
-      ${o.teacherName} - ${o.time}
-      <button onclick="deleteOfficeHour(${o.id})">Delete</button>
+      <span>${oh.teacherName} - ${oh.time}</span>
+      <button onclick="deleteOfficeHour(${oh.id})" style="background:red;color:white;">
+        Delete
+      </button>
     `;
+
     container.appendChild(div);
   });
 }
 
 function deleteOfficeHour(id) {
-  let list = JSON.parse(localStorage.getItem("officeHours") || "[]");
-  list = list.filter(x => x.id !== id);
-  localStorage.setItem("officeHours", JSON.stringify(list));
+  let officeHours = JSON.parse(localStorage.getItem("officeHours") || "[]");
+
+  officeHours = officeHours.filter(o => o.id !== id);
+
+  localStorage.setItem("officeHours", JSON.stringify(officeHours));
+
   renderOfficeHours();
 }
+window.onload = function () {
+  initViewFromURL();
+  loadSlots();
+  renderOfficeHours();
+};
+</script>
+</div>
 
-/* PRESETS (FIXED OWNER BUG) */
-function savePreset() {
-  const name = prompt("Preset name?");
-  if (!name) return;
+</div>
 
-  const username = getUser();
+<!-- Teacher Indicator -->
+<div class="teacher-indicator" style="display: none;"></div>
 
-  const data = {
-    owner: username,
-    blocks: []
-  };
+<!-- Student View -->
+<div id="student-view" class="view-container active">
 
-  let all = JSON.parse(localStorage.getItem("presets") || "{}");
-  all[name] = data;
-
-  localStorage.setItem("presets", JSON.stringify(all));
-  displayPresets();
+<style>
+/* View management */
+.view-container {
+  display: none;
 }
 
-function displayPresets() {
-  const container = document.getElementById("studentPresetsContainer");
-  if (!container) return;
+.view-container.active {
+  display: block;
+}
 
-  const all = JSON.parse(localStorage.getItem("presets") || "{}");
-  const names = Object.keys(all);
+/* Teacher indicator */
+.teacher-indicator {
+  position: fixed;
+  bottom: 10px;
+  left: 10px;
+  width: 20px;
+  height: 20px;
+  background-color: black;
+  border-radius: 2px;
+  z-index: 9999;
+}
 
-  const username = getUser();
+.schedule table {
+  width: 100%;
+  border-collapse: collapse;
+  border-spacing: 0;
+  table-layout: fixed;
+  border: 1px solid black;
+}
+.schedule th,
+.schedule td {
+  border-left: 1px solid black;
+  border-right: 1px solid black;
+  border-bottom: 1px solid black;
+}
+.schedule thead th {
+  border-bottom: 1px solid black;
+  background-color: red;
+  color: white;
+}
+.schedule tbody tr:nth-child(4n+2) td,
+.schedule tbody tr:nth-child(4n+3) td,
+.schedule tbody tr:nth-child(4n+4) td {
+  border-bottom: 1px dotted grey;
+}
 
-  let html = "<h3>Presets</h3>";
+.blocks-container {
+  margin-top: 30px;
+  padding: 20px;
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
 
-  names.forEach(n => {
-    const p = all[n];
-    const owner = p.owner === username;
+.blocks-container h3 {
+  margin-top: 0;
+}
 
-    html += `
-      <div>
-        <button onclick="togglePreset('${n}')">${n}</button>
-        ${owner ? `<button onclick="deletePreset('${n}')">Delete</button>` : ""}
-      </div>
-    `;
+.draggable-block {
+  display: inline-block;
+  padding: 15px;
+  margin: 10px;
+  background-color: #4CAF50;
+  color: white;
+  cursor: move;
+  border-radius: 5px;
+  border: 2px solid #45a049;
+  user-select: none;
+  text-align: center;
+  font-weight: bold;
+}
+
+.draggable-block[data-duration="15"] {
+  width: 60px;
+}
+
+.draggable-block[data-duration="30"] {
+  width: 120px;
+}
+
+.draggable-block[data-duration="45"] {
+  width: 180px;
+}
+
+.draggable-block[data-duration="60"] {
+  width: 240px;
+}
+
+.draggable-block:hover {
+  background-color: #45a049;
+}
+
+.draggable-block.dragging {
+  opacity: 0.7;
+}
+
+.schedule tbody td {
+  position: relative;
+}
+
+.scheduled-block {
+  position: absolute;
+  background-color: #2196F3;
+  color: white;
+  padding: 5px;
+  border-radius: 3px;
+  font-size: 12px;
+  width: 90%;
+  left: 5%;
+  top: 0;
+  cursor: move;
+}
+
+.scheduled-block.student-block {
+  cursor: pointer;
+  opacity: 0.8;
+}
+
+.block-label {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  font-size: 9px;
+  background-color: rgba(0, 0, 0, 0.3);
+  padding: 1px 3px;
+  border-radius: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 80%;
+}
+
+.attendance-counter {
+  position: absolute;
+  bottom: 2px;
+  left: 2px;
+  font-size: 11px;
+  background-color: rgba(0, 0, 0, 0.4);
+  padding: 2px 4px;
+  border-radius: 2px;
+  font-weight: bold;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s;
+}
+
+.attendance-counter:hover {
+  background-color: rgba(0, 0, 0, 0.6);
+}
+
+.scheduled-block.student-attending-counter {
+  cursor: pointer;
+}
+
+.scheduled-block[data-duration="15"] {
+  height: 12px;
+}
+
+.scheduled-block[data-duration="30"] {
+  height: 32px;
+}
+
+.scheduled-block[data-duration="45"] {
+  height: 52px}
+
+.scheduled-block[data-duration="60"] {
+  height: 76px;
+}
+
+.trash-can {
+  margin-top: 30px;
+  padding: 15px;
+  background-color: #f9f9f9;
+  border: 2px dashed #999;
+  border-radius: 5px;
+  text-align: center;
+  display: inline-block;
+  min-width: 160px;
+  position: relative;
+}
+
+.trash-can-images {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  margin: 0 auto;
+}
+
+.trash-can img {
+  width: 120px;
+  height: 120px;
+  cursor: pointer;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.trash-can img[src*="closed"] {
+  z-index: 2;
+}
+
+.trash-can img[src*="open"] {
+  z-index: 1;
+  opacity: 0;
+}
+
+.trash-can.active img[src*="closed"] {
+  opacity: 0;
+}
+
+.trash-can.active img[src*="open"] {
+  opacity: 1;
+}
+
+.trash-can.active {
+  background-color: #ffe6e6;
+  border-color: #cc0000;
+}
+
+.button-container {
+  margin-top: 30px;
+  display: flex;
+  gap: 15px;
+}
+
+.control-button {
+  padding: 12px 24px;
+  background-color: #2196F3;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.control-button:hover {
+  background-color: #0b7dda;
+}
+
+.control-button:active {
+  background-color: #0056b3;
+}
+
+.presets-container {
+  margin-top: 30px;
+  padding: 20px;
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.presets-container h3 {
+  margin-top: 0;
+}
+
+.preset-button {
+  display: inline-block;
+  padding: 12px 20px;
+  margin: 10px 10px 10px 0;
+  background-color: #e0e0e0;
+  color: #333;
+  border: 2px solid #999;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s, border-color 0.3s;
+}
+
+.preset-button:hover {
+  background-color: #d0d0d0;
+}
+
+.preset-button.active {
+  background-color: #4CAF50;
+  color: white;
+  border-color: #2d6b1f;
+}
+
+.preset-button.active:hover {
+  background-color: #45a049;
+}
+
+.no-presets-text {
+  color: #666;
+  font-style: italic;
+}
+</style>
+
+<div class="schedule">
+<table style="width:100%; border-collapse:collapse; table-layout:fixed;">
+<thead>
+<tr>
+<th style="width:20px; text-align:center;">Time</th>
+<th style="width:13.5%;">Monday</th>
+<th style="width:13.5%;">Tuesday</th>
+<th style="width:13.5%;">Wednesday</th>
+<th style="width:13.5%;">Thursday</th>
+<th style="width:13.5%;">Friday</th>
+<th style="width:13.5%;">Saturday</th>
+<th style="width:13.5%;">Sunday</th>
+</tr>
+</thead>
+<tbody>
+<tr><td style="text-align:center;">8:00 AM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">8:15 AM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">8:30 AM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">8:45 AM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">9:00 AM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">9:15 AM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">9:30 AM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">9:45 AM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">10:00 AM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">10:15 AM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">10:30 AM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">10:45 AM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">11:00 AM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">11:15 AM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">11:30 AM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">11:45 AM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">12:00 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">12:15 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">12:30 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">12:45 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">1:00 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">1:15 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">1:30 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">1:45 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">2:00 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">2:15 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">2:30 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">2:45 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">3:00 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">3:15 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">3:30 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">3:45 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">4:00 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">4:15 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">4:30 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">4:45 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">5:00 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">5:15 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">5:30 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">5:45 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">6:00 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">6:15 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">6:30 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">6:45 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">7:00 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">7:15 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">7:30 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">7:45 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">8:00 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">8:15 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">8:30 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">8:45 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">9:00 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">9:15 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">9:30 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">9:45 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="presets-container" id="studentPresetsContainer">
+  <h3>Teacher Presets:</h3>
+  <p class="no-presets-text">No presets available yet. Ask your teacher to save a preset.</p>
+</div>
+
+<div class="w3-container">
+  <p>This is where we put some words</p>
+</div>
+
+</div>
+
+<!-- Teacher View -->
+<div id="teacher-view" class="view-container">
+
+<div class="schedule">
+<table style="width:100%; border-collapse:collapse; table-layout:fixed;">
+<thead>
+<tr>
+<th style="width:20px; text-align:center;">Time</th>
+<th style="width:13.5%;">Monday</th>
+<th style="width:13.5%;">Tuesday</th>
+<th style="width:13.5%;">Wednesday</th>
+<th style="width:13.5%;">Thursday</th>
+<th style="width:13.5%;">Friday</th>
+<th style="width:13.5%;">Saturday</th>
+<th style="width:13.5%;">Sunday</th>
+</tr>
+</thead>
+<tbody>
+<tr><td style="text-align:center;">8:00 AM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">8:15 AM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">8:30 AM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">8:45 AM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">9:00 AM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">9:15 AM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">9:30 AM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">9:45 AM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">10:00 AM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">10:15 AM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">10:30 AM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">10:45 AM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">11:00 AM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">11:15 AM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">11:30 AM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">11:45 AM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">12:00 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">12:15 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">12:30 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">12:45 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">1:00 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">1:15 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">1:30 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">1:45 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">2:00 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">2:15 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">2:30 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">2:45 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">3:00 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">3:15 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">3:30 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">3:45 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">4:00 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">4:15 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">4:30 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">4:45 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">5:00 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">5:15 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">5:30 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">5:45 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">6:00 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">6:15 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">6:30 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">6:45 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">7:00 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">7:15 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">7:30 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">7:45 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">8:00 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">8:15 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">8:30 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">8:45 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">9:00 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">9:15 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">9:30 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+<tr><td style="text-align:center;">9:45 PM</td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td><td style="height:20px;"></td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="blocks-container">
+  <h3>Drag blocks to add to your schedule:</h3>
+  <div class="draggable-block" data-duration="15" draggable="true">15 min</div>
+  <div class="draggable-block" data-duration="30" draggable="true">30 min</div>
+  <div class="draggable-block" data-duration="45" draggable="true">45 min</div>
+  <div class="draggable-block" data-duration="60" draggable="true">1 hour</div>
+</div>
+
+<div class="trash-can" id="teacherTrashCan">
+  <div class="trash-can-images">
+    <img src="closed_trash_can.png" alt="Trash Can Closed">
+    <img src="open_trash_can.png" alt="Trash Can Open">
+  </div>
+  <p>Delete</p>
+</div>
+
+<button class="control-button" id="savePresetBtn">Save Preset</button>
+ <label>Teacher</label>
+<input id="teacher">
+
+<label>Time</label>
+<input id="time">
+
+
+</div>
+
+<button class="control-button" id="changeViewBtn">Change View</button>
+<div id="officeHoursContainer" class="presets-container">
+  <h3>Office Hours:</h3>
+</div>
+
+<script>
+
+let draggedElement = null;
+
+// Get all draggable blocks from the container
+const blocks = document.querySelectorAll('.draggable-block');
+const tableCells = document.querySelectorAll('#teacher-view .schedule tbody td:not(:first-child)');
+const scheduleTable = document.querySelector('.schedule');
+const teacherTrashCan = document.getElementById('teacherTrashCan');
+
+// Function to setup trash can listeners
+function setupTrashCanListeners(trashCan) {
+  if (!trashCan) return;
+  
+  trashCan.addEventListener('dragover', (e) => {
+    if (draggedElement && draggedElement.classList.contains('scheduled-block')) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      trashCan.classList.add('active');
+    }
   });
 
-  container.innerHTML = html;
+  trashCan.addEventListener('dragleave', (e) => {
+    trashCan.classList.remove('active');
+  });
+
+  trashCan.addEventListener('drop', (e) => {
+    e.preventDefault();
+    trashCan.classList.remove('active');
+    
+    if (draggedElement && draggedElement.classList.contains('scheduled-block')) {
+      draggedElement._droppedInTrash = true;
+      draggedElement.remove();
+      draggedElement = null;
+    }
+  });
 }
 
-function togglePreset(name) {
-  activePresets.add(name);
-}
+// Setup trash can listeners for both
+setupTrashCanListeners(teacherTrashCan);
 
-function deletePreset(name) {
-  let all = JSON.parse(localStorage.getItem("presets") || "{}");
-  delete all[name];
-  localStorage.setItem("presets", JSON.stringify(all));
-  displayPresets();
-}
-
-/* DRAG & DROP */
-document.querySelectorAll(".draggable-block").forEach(b => {
-  b.addEventListener("dragstart", e => {
-    draggedElement = b;
+blocks.forEach(block => {
+  block.addEventListener('dragstart', (e) => {
+    draggedElement = block;
+    block.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'copy';
+  });
+  
+  block.addEventListener('dragend', (e) => {
+    block.classList.remove('dragging');
   });
 });
 
-document.getElementById("changeViewBtn").onclick = () => {
-  teacher = !teacher;
+tableCells.forEach(cell => {
+  cell.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    // Set dropEffect based on what's being dragged
+    if (draggedElement && draggedElement.classList.contains('scheduled-block')) {
+      e.dataTransfer.dropEffect = 'move';
+    } else {
+      e.dataTransfer.dropEffect = 'copy';
+    }
+    cell.style.backgroundColor = '#e0e0e0';
+  });
+  
+  cell.addEventListener('dragleave', (e) => {
+    cell.style.backgroundColor = '';
+  });
+  
+  cell.addEventListener('drop', (e) => {
+    e.preventDefault();
+    cell.style.backgroundColor = '';
+    
+    if (draggedElement) {
+      if (draggedElement.classList.contains('draggable-block')) {
+        // Check if there's enough space for the block
+        const duration = parseInt(draggedElement.getAttribute('data-duration'));
+        const rowsNeeded = duration / 15; // Each row is 15 minutes
+        
+        // Find the row index of the cell
+        const row = cell.parentNode;
+        const tbody = row.parentNode;
+        const rowIndex = Array.from(tbody.children).indexOf(row);
+        const totalRows = tbody.children.length;
+        
+        // Check if block fits (need rowsNeeded rows starting from rowIndex)
+        if (rowIndex + rowsNeeded > totalRows) {
+          // Block is too long to fit at this position
+          return;
+        }
+        
+        // Create a new scheduled block element
+        const scheduledBlock = document.createElement('div');
+        scheduledBlock.className = 'scheduled-block';
+        scheduledBlock.textContent = draggedElement.textContent;
+        scheduledBlock.draggable = true;
+        
+        // Set the duration attribute from the dragged block
+        scheduledBlock.setAttribute('data-duration', duration);
+        
+        attachScheduledBlockHandlers(scheduledBlock);
+        cell.appendChild(scheduledBlock);
+      } else if (draggedElement.classList.contains('scheduled-block')) {
+        // Move existing scheduled block to this cell
+        // Check if there's enough space for the block at new position
+        const duration = parseInt(draggedElement.getAttribute('data-duration'));
+        const rowsNeeded = duration / 15;
+        
+        const row = cell.parentNode;
+        const tbody = row.parentNode;
+        const rowIndex = Array.from(tbody.children).indexOf(row);
+        const totalRows = tbody.children.length;
+        
+        if (rowIndex + rowsNeeded > totalRows) {
+          // Block is too long to fit at this position
+          return;
+        }
+        
+        cell.appendChild(draggedElement);
+      }
+      // Mark that drop succeeded
+      draggedElement._dropSucceeded = true;
+    }
+  });
+});
+
+function attachScheduledBlockHandlers(scheduledBlock) {
+  scheduledBlock.addEventListener('dragstart', (e) => {
+    draggedElement = scheduledBlock;
+    draggedElement._dropSucceeded = false;
+    draggedElement._droppedInTrash = false;
+    // Store the original parent for position restoration
+    draggedElement._originalParent = scheduledBlock.parentNode;
+    draggedElement._originalNextSibling = scheduledBlock.nextSibling;
+    scheduledBlock.style.opacity = '0.5';
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', scheduledBlock.textContent);
+  });
+  
+  scheduledBlock.addEventListener('dragend', (e) => {
+    scheduledBlock.style.opacity = '1';
+    if (teacherTrashCan) teacherTrashCan.classList.remove('active');
+    
+    // If drop succeeded (in trash or valid cell), don't restore
+    if (draggedElement._droppedInTrash) {
+      // Already deleted in trash drop handler
+    } else if (!draggedElement._dropSucceeded) {
+      // Restore to original position if drop didn't succeed
+      if (draggedElement._originalParent) {
+        draggedElement._originalParent.insertBefore(
+          scheduledBlock,
+          draggedElement._originalNextSibling
+        );
+      }
+    }
+    draggedElement = null;
+  });
+}
+
+// Attach handlers to existing scheduled blocks
+document.querySelectorAll('.scheduled-block').forEach(block => {
+  attachScheduledBlockHandlers(block);
+});
+
+// View Management
+let teacher = false; // default
+
+function initViewFromURL() {
+  const storedView = (sessionStorage.getItem('view') || localStorage.getItem('view') || sessionStorage.getItem('role') || localStorage.getItem('role') || '').toLowerCase();
+
+  if (storedView) {
+    teacher = (storedView === 'teacher');
+  } else {
+    const view = getViewMode();
+    teacher = (view === 'teacher');
+  }
+
   switchView();
-};
+}
+const studentView = document.getElementById('student-view');
+const teacherView = document.getElementById('teacher-view');
+const teacherIndicator = document.querySelector('.teacher-indicator');
+const changeViewBtn = document.getElementById('changeViewBtn');
+const savePresetBtn = document.getElementById('savePresetBtn');
 
-document.getElementById("savePresetBtn")?.addEventListener("click", savePreset);
+function savePreset() {
+  const presetName = prompt('Enter a name for this preset:');
+  if (!presetName || presetName.trim() === '') return;
 
-window.onload = () => {
-  initView();
-  renderOfficeHours();
-};
+  const username = getStudentId();
+  if (!username) {
+    alert("You must be logged in");
+    return;
+  }
 
+  const randomColor = {
+    r: Math.floor(Math.random() * 101) + 100,
+    g: Math.floor(Math.random() * 101) + 100,
+    b: Math.floor(Math.random() * 101) + 100
+  };
+
+  const scheduledBlocks = document.querySelectorAll('.scheduled-block');
+  const blocks = [];
+
+  scheduledBlocks.forEach(block => {
+    const parentCell = block.parentElement;
+    const row = parentCell.parentElement;
+    const tbody = row.parentElement;
+
+    blocks.push({
+      rowIndex: Array.from(tbody.children).indexOf(row),
+      colIndex: Array.from(row.children).indexOf(parentCell),
+      duration: block.getAttribute('data-duration'),
+      text: block.textContent
+    });
+  });
+
+  const preset = {
+    owner: username,
+    color: randomColor,
+    blocks: blocks
+  };
+
+  let allPresets = JSON.parse(localStorage.getItem('maristHoursPresets') || "{}");
+
+  allPresets[presetName] = preset;
+
+  localStorage.setItem('maristHoursPresets', JSON.stringify(allPresets));
+
+  alert(`Preset "${presetName}" saved!`);
+  displayPresets();
+}
+
+// Track active presets
+let activePresets = new Set();
+
+// Get logged-in user account
+function getStudentId() {
+  return sessionStorage.getItem("username") || localStorage.getItem("username");
+}
+
+
+
+// Get attendance count for a block
+function getAttendanceCount(blockId) {
+  // This will be fetched from server via updateBlockCounter
+  const blockElement = document.querySelector(`[data-block-id="${blockId}"]`);
+  if (!blockElement) return 0;
+  const counter = blockElement.querySelector('.attendance-counter');
+  if (!counter) return 0;
+  const match = counter.textContent.match(/(\d+)/);
+  return match ? parseInt(match[1]) : 0;
+}
+
+// Check if current student is attending (from DOM state)
+function isStudentAttending(blockId) {
+  const blockElement = document.querySelector(`[data-block-id="${blockId}"]`);
+  return blockElement ? blockElement.classList.contains('student-attending-counter') : false;
+}
+
+// Toggle student attendance for a block (server-based)
+async function toggleAttendance(blockId) {
+  const username = getStudentId();
+  if (!username) {
+    alert("Please log in first");
+    return;
+  }
+
+  try {
+    const response = await fetch("/api/attendance/toggle", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({blockId, username})
+    });
+
+    if (response.ok) {
+      // Update the counter display after toggle
+      await updateBlockCounter(blockId);
+    } else {
+      console.error("Failed to toggle attendance");
+    }
+  } catch (error) {
+    console.error("Error toggling attendance:", error);
+  }
+}
+
+// Update counter display for a block (fetch from server)
+async function updateBlockCounter(blockId) {
+  const blockElement = document.querySelector(`[data-block-id="${blockId}"]`);
+  if (!blockElement) return;
+
+  try {
+    const response = await fetch(`/api/attendance/get?blockId=${encodeURIComponent(blockId)}`);
+    const data = await response.json();
+
+    const counter = blockElement.querySelector('.attendance-counter');
+    if (counter) {
+      counter.textContent = data.count + ' attending';
+    }
+
+    // Check if current user is in the attendance list
+    const username = getStudentId();
+    if (data.students && data.students.includes(username)) {
+      blockElement.classList.add('student-attending-counter');
+    } else {
+      blockElement.classList.remove('student-attending-counter');
+    }
+  } catch (error) {
+    console.error("Error updating block counter:", error);
+  }
+}
+
+function togglePreset(presetName) {
+  const presetsData = localStorage.getItem('maristHoursPresets');
+  if (!presetsData) {
+    return;
+  }
+  
+  const allPresets = JSON.parse(presetsData);
+  const preset = allPresets[presetName];
+  
+  if (!preset) {
+    return;
+  }
+  
+  const tbody = document.querySelector('#student-view .schedule tbody');
+  
+  // Toggle the preset
+  if (activePresets.has(presetName)) {
+    // Remove this preset's blocks
+    activePresets.delete(presetName);
+    const blocksToRemove = document.querySelectorAll(`#student-view .scheduled-block[data-preset="${presetName.replace(/"/g, '\\"')}"]`);
+    blocksToRemove.forEach(block => block.remove());
+  } else {
+    // Add this preset's blocks
+    activePresets.add(presetName);
+    
+    // Get color from preset (handle both old format and new format)
+    const presetColor = preset?.color ?? { r: 120, g: 120, b: 120 };
+    const blocks = Array.isArray(preset?.blocks) ? preset.blocks : [];
+  
+    const colorString = `rgb(${presetColor.r}, ${presetColor.g}, ${presetColor.b})`;
+    
+    
+    // Load preset blocks (read-only in student view)
+    blocks.forEach(blockData => {
+      const row = tbody.children[blockData.rowIndex];
+      const cell = row.children[blockData.colIndex];
+      
+      if (cell) {
+        // Create unique block ID
+        const blockId = `${presetName}_${blockData.rowIndex}_${blockData.colIndex}`;
+        
+        const scheduledBlock = document.createElement('div');
+        scheduledBlock.className = 'scheduled-block student-block';
+        scheduledBlock.textContent = blockData.text;
+        scheduledBlock.setAttribute('data-duration', blockData.duration);
+        scheduledBlock.setAttribute('data-preset', presetName);
+        scheduledBlock.setAttribute('data-block-id', blockId);
+        scheduledBlock.style.backgroundColor = colorString;
+        scheduledBlock.draggable = false;
+        
+        // Add click handler for attendance
+        scheduledBlock.addEventListener('click', function(e) {
+          e.stopPropagation();
+          toggleAttendance(blockId);
+        });
+        
+        // Add attendance counter
+        const counter = document.createElement('div');
+        counter.className = 'attendance-counter';
+        counter.textContent = '0 attending';
+        scheduledBlock.appendChild(counter);
+        
+        // Add label with preset name
+        const label = document.createElement('div');
+        label.className = 'block-label';
+        label.textContent = presetName;
+        label.title = presetName; // Show full name on hover
+        scheduledBlock.appendChild(label);
+        
+        cell.appendChild(scheduledBlock);
+        
+        // Fetch and update attendance from server
+        updateBlockCounter(blockId);
+      }
+    });
+  }
+  
+  // Update button styling
+  updatePresetButtonStates();
+}
+
+function displayPresets() {
+  const container = document.getElementById('studentPresetsContainer');
+  if (!container) {
+    return;
+  }
+  
+  const presetsData = localStorage.getItem('maristHoursPresets');
+  if (!presetsData) {
+    container.innerHTML = '<h3>Teacher Presets:</h3><p class="no-presets-text">No presets available yet. Ask your teacher to save a preset.</p>';
+    return;
+  }
+  
+  const allPresets = JSON.parse(presetsData);
+  const presetNames = Object.keys(allPresets);
+  
+  if (presetNames.length === 0) {
+    container.innerHTML = '<h3>Teacher Presets:</h3><p class="no-presets-text">No presets available yet. Ask your teacher to save a preset.</p>';
+    return;
+  }
+  
+  let html = '<h3>Teacher Presets:</h3>';
+
+presetNames.forEach(name => {
+  const preset = allPresets[name];
+
+  const isOwner = preset.owner === username;
+
+  html += `
+    <div style="margin:10px 0;">
+      <button class="preset-button" onclick="togglePreset('${name.replace(/'/g, "\\'")}')">
+        ${name}
+      </button>
+      
+      ${isOwner ? `
+        <button onclick="deletePreset('${name.replace(/'/g, "\\'")}')"
+          style="margin-left:10px;background:red;color:white;">
+          Delete
+        </button>
+      ` : ''}
+    </div>
+  `;
+});
+  
+  container.innerHTML = html;
+  updatePresetButtonStates();
+}
+
+function updatePresetButtonStates() {
+  const buttons = document.querySelectorAll('.preset-button');
+  buttons.forEach(button => {
+    const presetName = button.textContent;
+    if (activePresets.has(presetName)) {
+      button.classList.add('active');
+    } else {
+      button.classList.remove('active');
+    }
+  });
+}
+
+function deletePreset(presetName) {
+  const username = getStudentId();
+  let allPresets = JSON.parse(localStorage.getItem('maristHoursPresets'));
+
+  const preset = allPresets[presetName];
+
+  if (!preset) return;
+
+  // 🔒 ownership check
+  if (preset.owner !== username) {
+    alert("You can only delete your own presets.");
+    return;
+  }
+
+  delete allPresets[presetName];
+
+  localStorage.setItem('maristHoursPresets', JSON.stringify(allPresets));
+
+  // remove active if currently enabled
+  activePresets.delete(presetName);
+
+  displayPresets();
+}
+
+function switchView() {
+  if (teacher === true) {
+    studentView.classList.remove('active');
+    teacherView.classList.add('active');
+    if (teacherIndicator) teacherIndicator.style.display = 'block';
+  } else {
+    teacherView.classList.remove('active');
+    studentView.classList.add('active');
+    if (teacherIndicator) teacherIndicator.style.display = 'none';
+    displayPresets();
+  }
+}
+
+
+// Button event listeners
+changeViewBtn.addEventListener('click', () => {
+  teacher = !teacher;
+  // Persist the current view so reloads and future visits respect the role
+  try {
+    sessionStorage.setItem('view', teacher ? 'teacher' : 'student');
+  } catch (e) {
+    // ignore storage errors (e.g., private mode)
+  }
+  switchView();
+});
+
+if (savePresetBtn) {
+  savePresetBtn.addEventListener('click', savePreset);
+}
+
+
+
+// Display presets in student view on initial load
+if (!teacher) {
+  displayPresets();
+}
+async function loadSlots() {
+  const res = await fetch('/api/slots/list');
+  const slots = await res.json();
+  console.log("Slots from server:", slots);
+}
 </script>
 
+</div>
+
+<div class="w3-container w3-teal">
+  <p>My Footer</p>
+</div>
 </body>
 </html>
