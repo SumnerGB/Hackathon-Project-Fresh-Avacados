@@ -726,7 +726,7 @@ window.onload = function () {
   <p>Delete</p>
 </div>
 
-<button class="control-button" id="savePresetBtn">Save Preset</button>
+<button class="control-button" id="savePresetBtn">Save Hours</button>
 
 </div>
 
@@ -1036,7 +1036,7 @@ function savePreset() {
   editingPresetName = null;
 
   if (savePresetBtn) {
-    savePresetBtn.textContent = 'Save Preset';
+    savePresetBtn.textContent = 'Save Hours';
   }
 
   alert(wasEditing ? `Preset "${trimmedPresetName}" updated!` : `Preset "${trimmedPresetName}" saved!`);
@@ -1277,7 +1277,7 @@ function deletePreset(presetName) {
     editingPresetName = null;
     clearTeacherSchedule();
     if (savePresetBtn) {
-      savePresetBtn.textContent = 'Save Preset';
+      savePresetBtn.textContent = 'Save Hours';
     }
   }
 
