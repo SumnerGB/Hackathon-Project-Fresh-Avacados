@@ -692,6 +692,8 @@ document.querySelectorAll('.scheduled-block').forEach(block => {
 let teacher = false; // default
 
 function initViewFromURL() {
+  console.log("View mode:", getViewMode());
+console.log("Teacher boolean:", teacher);
   const view = getViewMode();
 
   if (view === "teacher") {
@@ -968,21 +970,14 @@ function updatePresetButtonStates() {
 }
 
 function switchView() {
-  if (teacher) {
+  if (teacher === true) {
     studentView.classList.remove('active');
     teacherView.classList.add('active');
-
-    if (teacherIndicator) {
-      teacherIndicator.style.display = 'block';
-    }
+    if (teacherIndicator) teacherIndicator.style.display = 'block';
   } else {
-    studentView.classList.add('active');
     teacherView.classList.remove('active');
-
-    if (teacherIndicator) {
-      teacherIndicator.style.display = 'none';
-    }
-
+    studentView.classList.add('active');
+    if (teacherIndicator) teacherIndicator.style.display = 'none';
     displayPresets();
   }
 }
