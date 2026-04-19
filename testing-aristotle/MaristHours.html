@@ -229,7 +229,7 @@ window.onload = function () {
 }
 
 .scheduled-block.student-block {
-  cursor: pointer;
+  cursor: default;
   opacity: 0.8;
 }
 
@@ -245,28 +245,6 @@ window.onload = function () {
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 80%;
-}
-
-.attendance-counter {
-  position: absolute;
-  bottom: 2px;
-  left: 2px;
-  font-size: 11px;
-  background-color: rgba(0, 0, 0, 0.4);
-  padding: 2px 4px;
-  border-radius: 2px;
-  font-weight: bold;
-  cursor: pointer;
-  user-select: none;
-  transition: background-color 0.2s;
-}
-
-.attendance-counter:hover {
-  background-color: rgba(0, 0, 0, 0.6);
-}
-
-.scheduled-block.student-attending-counter {
-  cursor: pointer;
 }
 
 .scheduled-block[data-duration="15"] {
@@ -586,12 +564,6 @@ window.onload = function () {
 </div>
 
 <button class="control-button" id="savePresetBtn">Save Preset</button>
- <label>Teacher</label>
-<input id="teacher">
-
-<label>Time</label>
-<input id="time">
-
 
 </div>
 
@@ -785,6 +757,10 @@ const teacherIndicator = document.querySelector('.teacher-indicator');
 const changeViewBtn = document.getElementById('changeViewBtn');
 const savePresetBtn = document.getElementById('savePresetBtn');
 
+function getCurrentRole() {
+  return (sessionStorage.getItem('role') || localStorage.getItem('role') || '').toLowerCase();
+}
+
 function savePreset() {
   const presetName = prompt('Enter a name for this preset:');
   if (!presetName || presetName.trim() === '') return;
@@ -844,75 +820,6 @@ function getStudentId() {
 
 
 
-// Get attendance count for a block
-function getAttendanceCount(blockId) {
-  // This will be fetched from server via updateBlockCounter
-  const blockElement = document.querySelector(`[data-block-id="${blockId}"]`);
-  if (!blockElement) return 0;
-  const counter = blockElement.querySelector('.attendance-counter');
-  if (!counter) return 0;
-  const match = counter.textContent.match(/(\d+)/);
-  return match ? parseInt(match[1]) : 0;
-}
-
-// Check if current student is attending (from DOM state)
-function isStudentAttending(blockId) {
-  const blockElement = document.querySelector(`[data-block-id="${blockId}"]`);
-  return blockElement ? blockElement.classList.contains('student-attending-counter') : false;
-}
-
-// Toggle student attendance for a block (server-based)
-async function toggleAttendance(blockId) {
-  const username = getStudentId();
-  if (!username) {
-    alert("Please log in first");
-    return;
-  }
-
-  try {
-    const response = await fetch("/api/attendance/toggle", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({blockId, username})
-    });
-
-    if (response.ok) {
-      // Update the counter display after toggle
-      await updateBlockCounter(blockId);
-    } else {
-      console.error("Failed to toggle attendance");
-    }
-  } catch (error) {
-    console.error("Error toggling attendance:", error);
-  }
-}
-
-// Update counter display for a block (fetch from server)
-async function updateBlockCounter(blockId) {
-  const blockElement = document.querySelector(`[data-block-id="${blockId}"]`);
-  if (!blockElement) return;
-
-  try {
-    const response = await fetch(`/api/attendance/get?blockId=${encodeURIComponent(blockId)}`);
-    const data = await response.json();
-
-    const counter = blockElement.querySelector('.attendance-counter');
-    if (counter) {
-      counter.textContent = data.count + ' attending';
-    }
-
-    // Check if current user is in the attendance list
-    const username = getStudentId();
-    if (data.students && data.students.includes(username)) {
-      blockElement.classList.add('student-attending-counter');
-    } else {
-      blockElement.classList.remove('student-attending-counter');
-    }
-  } catch (error) {
-    console.error("Error updating block counter:", error);
-  }
-}
-
 function togglePreset(presetName) {
   const presetsData = localStorage.getItem('maristHoursPresets');
   if (!presetsData) {
@@ -963,18 +870,6 @@ function togglePreset(presetName) {
         scheduledBlock.style.backgroundColor = colorString;
         scheduledBlock.draggable = false;
         
-        // Add click handler for attendance
-        scheduledBlock.addEventListener('click', function(e) {
-          e.stopPropagation();
-          toggleAttendance(blockId);
-        });
-        
-        // Add attendance counter
-        const counter = document.createElement('div');
-        counter.className = 'attendance-counter';
-        counter.textContent = '0 attending';
-        scheduledBlock.appendChild(counter);
-        
         // Add label with preset name
         const label = document.createElement('div');
         label.className = 'block-label';
@@ -984,8 +879,6 @@ function togglePreset(presetName) {
         
         cell.appendChild(scheduledBlock);
         
-        // Fetch and update attendance from server
-        updateBlockCounter(blockId);
       }
     });
   }
@@ -1079,14 +972,26 @@ function deletePreset(presetName) {
 }
 
 function switchView() {
+  const role = getCurrentRole();
+
+  if (role === 'teacher') {
+    teacher = true;
+  }
+
   if (teacher === true) {
     studentView.classList.remove('active');
     teacherView.classList.add('active');
     if (teacherIndicator) teacherIndicator.style.display = 'block';
+    if (changeViewBtn && role === 'teacher') {
+      changeViewBtn.style.display = 'none';
+    }
   } else {
     teacherView.classList.remove('active');
     studentView.classList.add('active');
     if (teacherIndicator) teacherIndicator.style.display = 'none';
+    if (changeViewBtn) {
+      changeViewBtn.style.display = 'inline-block';
+    }
     displayPresets();
   }
 }
@@ -1094,8 +999,14 @@ function switchView() {
 
 // Button event listeners
 changeViewBtn.addEventListener('click', () => {
+  const role = getCurrentRole();
+  if (role === 'teacher') {
+    teacher = true;
+    switchView();
+    return;
+  }
+
   teacher = !teacher;
-  // Persist the current view so reloads and future visits respect the role
   try {
     sessionStorage.setItem('view', teacher ? 'teacher' : 'student');
   } catch (e) {
