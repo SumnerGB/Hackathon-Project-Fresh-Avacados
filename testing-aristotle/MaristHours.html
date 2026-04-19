@@ -624,7 +624,7 @@ window.onload = function () {
 </div>
 
 <div class="presets-container" id="studentPresetsContainer">
-  <h3>Teacher Presets:</h3>
+  <h3>Teacher's Available to Select:</h3>
   <p class="no-presets-text">No presets available yet. Ask your teacher to save a preset.</p>
 </div>
 
@@ -1211,7 +1211,7 @@ function displayPresets() {
     return;
   }
   
-  let html = '<h3>Teacher Presets:</h3>';
+  let html = '<h3>Teachers Available to Select:</h3>';
 
 presetNames.forEach(name => {
   const preset = allPresets[name];

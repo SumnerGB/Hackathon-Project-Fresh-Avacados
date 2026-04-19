@@ -23,3 +23,12 @@ For Katelyn (how to run):
 8) It should return something like "Server running at http://localhost:8080", coppy past the link portion into your shitty browser
 9) You SHOULD be good.
 
+
+The last things we need to do:
+-Remove/hide the word footer from the teacher and student view
+-Remove/hide the black box in the corner for teacher view
+-Remove/hide the table that shows usernames and passwords at login
+-If we have time fix it so that the times don't overflow from their box
+ so for example 9:45pm is not cut off at 5 in the box.
+-Delete this is where we put some words from the student view
+-Go through and change/add comments to the code
