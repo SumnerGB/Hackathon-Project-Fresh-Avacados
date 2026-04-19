@@ -7,7 +7,7 @@
 
 
 WHAT WE DID:
--I made the user interface for registar and login but the pictures won't load for them when I load up local host and idk why
+-I made the user interface for registar and login but the pictures won't load for them when I load up local host and idk why-----doned
 I need help making them load in, PLEASE HELP!! -- DONEDONEDONEDONEDONEDONEDONEDONEDONEDONE
 
 
