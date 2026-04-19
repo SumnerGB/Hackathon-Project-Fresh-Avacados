@@ -7,9 +7,8 @@
 
 
 WHAT WE DID:
--So I maked register buitiful but the pictures don't load on the website part
- but does load on the actual HTML file so let me know if it loads for you on 
-  the actual website. Thanks (register has been made buitiful)
+-I made the user interface for registar and login but the pictures won't load for them when I load up local host and idk why
+I need help making them load in, PLEASE HELP!!
 
 WHAT I DID IN "CRATED TEACHER VIEW":
 i created the teacher view which is seperate to the student view i have not yet added the differences because i'm nervous but i'm working on it 
