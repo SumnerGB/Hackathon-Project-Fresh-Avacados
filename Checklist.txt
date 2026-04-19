@@ -18,8 +18,8 @@ For Katelyn (how to run):
 
 1) Open Terminal
 2) Enter: cd "~/Desktop"
-3) Enter: cd "System Development 1"
-4) Enter: cd "Hackathon-Project-Fresh-Avacados"
+3) Enter: cd "Software Development 1"
+4) Enter: cd "Hackathon-Project-Fresh-Avacados-1"
 5) Enter: cd "testing-aristotle"
 6) Enter: javac Main.java
 7) Enter: java Main
