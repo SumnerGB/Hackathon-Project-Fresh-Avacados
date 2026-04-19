@@ -9,7 +9,8 @@ WHAT WE DID:
  but does load on the actual HTML file so let me know if it loads for you on 
   the actual website. Thanks (register has been made buitiful)
 
-
+WHAT I DID IN "CRATED TEACHER VIEW":
+i created the teacher view which is seperate to the student view i have not yet added the differences because i'm nervous but i'm working on it 
 
 For Katelyn (how to run):
 
