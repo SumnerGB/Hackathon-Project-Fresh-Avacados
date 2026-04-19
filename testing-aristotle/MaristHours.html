@@ -413,11 +413,11 @@ window.onload = function () {
 }
 
 .scheduled-block[data-duration="15"] {
-  height: 12px;
+  height: 18px;
 }
 
 .scheduled-block[data-duration="30"] {
-  height: 32px;
+  height: 38px;
 }
 
 .scheduled-block[data-duration="45"] {
@@ -998,7 +998,7 @@ function savePreset() {
     return;
   }
 
-  const trimmedPresetName = editingPresetName || (prompt('Please enter a name for your office') || '').trim();
+  const trimmedPresetName = editingPresetName || (prompt('Please enter your name and office room number') || '').trim();
   if (!trimmedPresetName) return;
 
   let allPresets = JSON.parse(localStorage.getItem('maristHoursPresets') || "{}");
