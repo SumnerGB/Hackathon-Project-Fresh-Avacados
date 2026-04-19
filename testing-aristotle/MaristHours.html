@@ -354,18 +354,20 @@ window.onload = function () {
 
 .schedule tbody td {
   position: relative;
+  padding: 0;
 }
 
 .scheduled-block {
   position: absolute;
   background-color: #2196F3;
   color: white;
-  padding: 5px;
+  padding: 3px 2px;
   border-radius: 3px;
   font-size: 12px;
-  width: 90%;
-  left: 5%;
+  width: 100%;
+  left: 0;
   top: 0;
+  box-sizing: border-box;
   cursor: move;
 }
 
@@ -751,7 +753,7 @@ const tableCells = document.querySelectorAll('#teacher-view .schedule tbody td:n
 const scheduleTable = document.querySelector('.schedule');
 const teacherTrashCan = document.getElementById('teacherTrashCan');
 
-// Function to setup trash can listeners
+// Function to setup trash can
 function setupTrashCanListeners(trashCan) {
   if (!trashCan) return;
   
