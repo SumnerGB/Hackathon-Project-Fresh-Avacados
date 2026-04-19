@@ -30,5 +30,5 @@ The last things we need to do:
 -Remove/hide the table that shows usernames and passwords at login DONEDONEDONEDONEDONEDONEDONEDONEDONEDONE
 -If we have time fix it so that the times don't overflow from their box
  so for example 9:45pm is not cut off at 5 in the box.
--Delete this is where we put some words from the student view
+-Delete this is where we put some words from the student view DONEDONEDONEDONEDONEDONEDONEDONEDONEDONE
 -Go through and change/add comments to the code
