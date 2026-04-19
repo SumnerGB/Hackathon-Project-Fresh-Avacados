@@ -994,7 +994,7 @@ function savePreset() {
     return;
   }
 
-  const trimmedPresetName = editingPresetName || (prompt('Enter a name for this preset:') || '').trim();
+  const trimmedPresetName = editingPresetName || (prompt('Please enter a name for your office') || '').trim();
   if (!trimmedPresetName) return;
 
   let allPresets = JSON.parse(localStorage.getItem('maristHoursPresets') || "{}");
