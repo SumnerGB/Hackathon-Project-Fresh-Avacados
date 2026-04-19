@@ -129,6 +129,8 @@ function renderOfficeHours() {
   const container = document.getElementById("officeHoursContainer");
   if (!container) return;
 
+  const username = getStudentId();
+  const currentRole = getCurrentRole();
   const allPresets = JSON.parse(localStorage.getItem("maristHoursPresets") || "{}");
   const presetEntries = Object.entries(allPresets);
 
@@ -147,10 +149,18 @@ function renderOfficeHours() {
     div.style.display = "block";
 
     const scheduleText = getPresetScheduleText(preset.blocks);
+    const canDelete = currentRole === "teacher" && preset.owner === username;
+    const safePresetName = presetName.replace(/'/g, "\\'");
 
     div.innerHTML = `
       <div style="font-weight:bold; margin-bottom:6px;">${presetName}</div>
       <div>${scheduleText}</div>
+      ${canDelete ? `
+        <button onclick="deletePreset('${safePresetName}')"
+          style="margin-top:8px;background:red;color:white;border:none;padding:8px 12px;border-radius:4px;cursor:pointer;">
+          Delete Preset
+        </button>
+      ` : ""}
     `;
 
     container.appendChild(div);
